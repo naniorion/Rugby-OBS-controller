@@ -46,7 +46,8 @@ sequenceDiagram
 *(Haz una captura del encabezado de tu Panel de Control donde sale la URL verde y pégala aquí o guárdala en una carpeta `img`)*
 `![URL Verde](./img/url_ejemplo.png)`
 
----
+---<img width="1920" height="235" alt="rugby-obs-controller_5Rwb0jERRk" src="https://github.com/user-attachments/assets/f77ba8dd-9a20-467a-bb15-552a9887ce11" />
+
 
 ## 3. Flujo de Trabajo en un Partido
 
