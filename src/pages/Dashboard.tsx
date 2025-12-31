@@ -7,6 +7,8 @@ import { ActionLog } from '../components/ActionLog';
 import { SubstitutionControl } from '../components/SubstitutionControl';
 import { PlayerSelectorModal } from '../components/PlayerSelectorModal';
 import { Player } from '../types';
+import pkg from '../../package.json'; // Import package.json
+const { version } = pkg;
 
 const btnStyle = {
     padding: '10px',
@@ -151,7 +153,11 @@ export const Dashboard: React.FC = () => {
                 height: '60px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Controlador de Rugby para OBS <span style={{ fontSize: '0.8rem', opacity: 0.6, fontWeight: 'normal' }}>creado por naniorion</span></h2>
+                    <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
+                        Controlador de Rugby para OBS
+                        <span style={{ fontSize: '0.8rem', opacity: 0.6, fontWeight: 'normal', marginLeft: '10px' }}>v{version}</span>
+                        <span style={{ fontSize: '0.8rem', opacity: 0.6, fontWeight: 'normal', marginLeft: '10px' }}>creado por naniorion</span>
+                    </h2>
                     {serverPort && (
                         <div style={{
                             backgroundColor: '#333',
