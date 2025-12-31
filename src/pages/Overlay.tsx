@@ -151,7 +151,7 @@ export const Overlay: React.FC = () => {
             <div className="scoreboard" style={{
                 transform: `scale(${matchState.scoreboardConfig?.scale || 1})`,
                 opacity: matchState.scoreboardConfig?.opacity || 1,
-                transformOrigin: 'top center',
+                transformOrigin: 'top left',
                 transition: 'all 0.3s ease'
             }}>
                 {/* Home Team */}
@@ -164,7 +164,7 @@ export const Overlay: React.FC = () => {
                 {/* Timer */}
                 <div className="timer-panel">
                     <div className="timer-value">{formatTime(timer.value)}</div>
-                    <div className="timer-label">{timer.half === 1 ? '1st Half' : '2nd Half'}</div>
+                    <div className="timer-label">{timer.half === 1 ? '1ª parte' : '2ª parte'}</div>
                 </div>
 
                 {/* Away Team */}
@@ -320,7 +320,7 @@ export const Overlay: React.FC = () => {
                                             const getDescription = () => {
                                                 // Specific format for Cards: "Para [number] - [Name]"
                                                 if (act.type === 'card' || act.type === 'yellow' || act.type === 'red' || act.cardType) {
-                                                    return `Para ${act.player?.number || '?'} - ${act.player?.name || 'Jugador'}`;
+                                                    return `${act.player?.number || ''} - ${act.player?.name || 'Jugador'}`;
                                                 }
                                                 // Specific format for Subs: "Entra [In], Sale [Out]"
                                                 if (act.type === 'sub' && act.subDetails) {

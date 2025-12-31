@@ -111,12 +111,14 @@ export const Dashboard: React.FC = () => {
 
         if (modalAction.type === 'score') {
             updateScore(modalAction.teamId, modalAction.details.type, modalAction.details.delta, player ? player.id : undefined);
-        } else if (modalAction.type === 'card' && player) {
-            // Only allow cards if player is known for now, or handle unknown cards later
+        } else if (modalAction.type === 'card') {
+            // Handle unknown player for cards
+            const cardPlayer = player || { id: 'unknown-' + Date.now(), name: 'Desconocido', number: '', isStarter: false };
+
             addCard({
                 id: Date.now().toString(),
                 teamId: modalAction.teamId,
-                player,
+                player: cardPlayer,
                 type: modalAction.details.cardType,
                 timestamp: Date.now(),
                 remainingSeconds: modalAction.details.cardType === 'yellow' ? 600 : 0
