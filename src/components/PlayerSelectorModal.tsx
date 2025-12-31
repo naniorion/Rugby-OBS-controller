@@ -2,14 +2,19 @@ import React from 'react';
 import { Player, Team } from '../types';
 
 interface PlayerSelectorModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSelect: (player: Player | null) => void;
-    team: Team;
-    players: Player[];
-    title?: string;
+    isOpen: boolean;        // Si el modal está visible
+    onClose: () => void;    // Función para cerrar modal
+    onSelect: (player: Player | null) => void; // Callback al elegir jugador
+    team: Team;             // Equipo del que se muestran jugadores
+    players: Player[];      // Lista de jugadores a mostrar
+    title?: string;         // Título opcional
 }
 
+/**
+ * Componente: PlayerSelectorModal
+ * Ventana emergente para seleccionar un jugador de una lista.
+ * Se usa al asignar tries, tarjetas o conversiones a un jugador específico.
+ */
 export const PlayerSelectorModal: React.FC<PlayerSelectorModalProps> = ({ isOpen, onClose, onSelect, team, players, title }) => {
     if (!isOpen) return null;
 
@@ -39,6 +44,7 @@ export const PlayerSelectorModal: React.FC<PlayerSelectorModalProps> = ({ isOpen
                 </div>
 
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {/* Botón para seleccionar "Desconocido" o ninguno */}
                     <button
                         onClick={() => onSelect(null)}
                         style={{

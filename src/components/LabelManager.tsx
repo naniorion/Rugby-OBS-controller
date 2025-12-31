@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
 import { useMatch } from '../context/MatchContext';
 
+/**
+ * Componente: LabelManager
+ * Permite crear, guardar y mostrar rótulos personalizados (lower thirds) en el overlay.
+ * Gestiona una lista de colores recientes y rótulos guardados.
+ */
 export const LabelManager: React.FC = () => {
     const { matchState, setOverlayView, saveLabel, deleteLabel } = useMatch() as any;
 
-    // Local state for new label
+    // Estado local para los campos del creador de rótulos
     const [title, setTitle] = useState('');
     const [subtitle, setSubtitle] = useState('');
     const [color, setColor] = useState('#2196f3');
-    // Recent colors state (persisted in localStorage ideally, but simple state for now)
+    // Historial de colores recientes (mock, podría persistirse)
     const [recentColors, setRecentColors] = useState<string[]>(['#2196f3', '#f44336', '#4caf50', '#ffeb3b', '#9c27b0']);
 
+    /**
+     * Guarda el rótulo actual en la lista de persistentes.
+     */
     const handleSave = () => {
         if (!title) return;
         const newLabel = { id: Date.now().toString(), text: title, subtext: subtitle, color };
         if (saveLabel) saveLabel(newLabel);
 
-        // Add to recent colors if not exists
+        // Añadir a recientes si no existe
         if (!recentColors.includes(color)) {
-            setRecentColors(prev => [color, ...prev].slice(0, 10)); // Keep last 10
+            setRecentColors(prev => [color, ...prev].slice(0, 10)); // Mantiene los últimos 10
         }
 
         setTitle('');
@@ -29,8 +37,7 @@ export const LabelManager: React.FC = () => {
 
     return (
         <div style={{ padding: 20 }}>
-            {/* Creator */}
-            {/* Creator */}
+            {/* Panel de Creación */}
             <div className="panel" style={{ marginBottom: 20 }}>
                 <h3 className="section-title">Crear Rótulo Personalizado</h3>
                 <div style={{ display: 'grid', gap: 15 }}>
@@ -66,9 +73,9 @@ export const LabelManager: React.FC = () => {
                         />
                     </div>
 
-                    {/* Color Presets */}
+                    {/* Presets de Color */}
                     <div>
-                        <label style={{ display: 'block', color: '#aaa', fontSize: '0.9em', marginBottom: 5 }}>Colores Recientes / Presets</label>
+                        <label style={{ display: 'block', color: '#aaa', fontSize: '0.9em', marginBottom: 5 }}>Colores Recientes / Predeterminados</label>
                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                             {['#e91e63', '#9c27b0', '#2196f3', '#00bcd4', '#4caf50', '#ff9800', '#f44336', ...recentColors].filter((c, i, a) => a.indexOf(c) === i).slice(0, 10).map(c => (
                                 <div
@@ -88,6 +95,7 @@ export const LabelManager: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Botones de Acción */}
                     <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                         <button
                             onClick={() => setOverlayView('custom_label', title, subtitle, color)}
@@ -111,7 +119,7 @@ export const LabelManager: React.FC = () => {
                 </div>
             </div>
 
-            {/* Saved List */}
+            {/* Lista de Rótulos Guardados */}
             {matchState.savedLabels && matchState.savedLabels.length > 0 && (
                 <div>
                     <h3 style={{ color: '#aaa' }}>Rótulos Guardados</h3>

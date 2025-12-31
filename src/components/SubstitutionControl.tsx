@@ -3,15 +3,20 @@ import { useMatch } from '../context/MatchContext';
 import { Player } from '../types';
 
 interface SubstitutionControlProps {
-    teamId: 'home' | 'away';
+    teamId: 'home' | 'away'; // Equipo que realiza el cambio
 }
 
+/**
+ * Componente: SubstitutionControl
+ * Permite seleccionar un jugador titular (saliente) y uno suplente (entrante)
+ * para realizar y registrar una sustitución.
+ */
 export const SubstitutionControl: React.FC<SubstitutionControlProps> = ({ teamId }) => {
     const { matchState, performSub } = useMatch() as any;
     const team = matchState[teamId];
 
-    // Default isOnField logic if not set specificially yet
-    // We treat isStarter as initial field state, but we should rely on isOnField if present
+    // Lógica para determinar si un jugador está en campo
+    // Usa 'isOnField' si existe, si no recae en 'isStarter'
     const getIsOnField = (p: Player) => p.isOnField !== undefined ? p.isOnField : p.isStarter;
 
     const onFieldPlayers = team.lineup.filter((p: Player) => getIsOnField(p));
@@ -21,6 +26,9 @@ export const SubstitutionControl: React.FC<SubstitutionControlProps> = ({ teamId
     const [selectedIn, setSelectedIn] = useState<string | null>(null);
     const [confirmMode, setConfirmMode] = useState(false);
 
+    /**
+     * Ejecuta el cambio. Requiere confirmación (doble clic o botón confirmar).
+     */
     const handleSub = () => {
         if (!selectedOut || !selectedIn) return;
 
@@ -35,7 +43,7 @@ export const SubstitutionControl: React.FC<SubstitutionControlProps> = ({ teamId
         setConfirmMode(false);
     };
 
-    // Auto-cancel confirmation if selection changes
+    // Auto-cancelar confirmación si cambia la selección
     React.useEffect(() => {
         if (confirmMode) setConfirmMode(false);
     }, [selectedOut, selectedIn]);
@@ -47,7 +55,7 @@ export const SubstitutionControl: React.FC<SubstitutionControlProps> = ({ teamId
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 10, alignItems: 'start' }}>
-                {/* On Field */}
+                {/* Jugadores En Campo (Salientes Potenciales) */}
                 <div>
                     <h4 style={{ borderBottom: '1px solid #555', paddingBottom: 5, marginTop: 0, color: '#aaa', fontSize: '0.9em' }}>SALIENTE (Titular)</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, maxHeight: 300, overflowY: 'auto' }}>
@@ -71,7 +79,7 @@ export const SubstitutionControl: React.FC<SubstitutionControlProps> = ({ teamId
                     </div>
                 </div>
 
-                {/* Confirm Action */}
+                {/* Botón de Acción Central */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 60 }}>
                     {selectedOut && selectedIn ? (
                         confirmMode ? (
@@ -102,7 +110,7 @@ export const SubstitutionControl: React.FC<SubstitutionControlProps> = ({ teamId
                     )}
                 </div>
 
-                {/* Bench */}
+                {/* Jugadores en Banca (Entrantes Potenciales) */}
                 <div>
                     <h4 style={{ borderBottom: '1px solid #555', paddingBottom: 5, marginTop: 0, color: '#aaa', fontSize: '0.9em' }}>ENTRANTE (Suplente)</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, maxHeight: 300, overflowY: 'auto' }}>

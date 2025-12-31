@@ -19,6 +19,10 @@ const btnStyle = {
 };
 
 // Simple Tabs Component
+/**
+ * Componente funcional de Pestañas (Tabs) simple.
+ * Gestiona qué contenido se muestra según la pestaña activa (index).
+ */
 const Tabs = ({ children }: any) => {
     const [activeTab, setActiveTab] = useState(0);
     return (
@@ -52,14 +56,27 @@ const Tabs = ({ children }: any) => {
 
 const Tab = ({ children }: any) => children;
 
+/**
+ * Componente Principal: Dashboard
+ * Es el panel de control del operador. Desde aquí se gestiona todo el partido:
+ * - Puntuación y reloj
+ * - Alineaciones y cambios
+ * - Rótulos y Overlay
+ * - Conexión con OBS y configuración
+ */
 export const Dashboard: React.FC = () => {
+    // Consumimos todas las funciones del contexto global para manipular el estado
     const { matchState, isConnected, updateScore, updateTimer, updateTeamInfo, addCard, removeCard, setOverlayView, setHalf, resetMatch, setLeagueLogo, setScoreboardConfig, setLeagueLogoConfig } = useMatch() as any;
     const { home, away, timer, cards } = matchState;
 
-    // Modal State
+    // Estado para Modales y Puerto del Servidor
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [serverPort, setServerPort] = useState<number | null>(null);
 
+    /**
+     * Efecto para detectar el puerto del servidor Socket.IO.
+     * Si estamos en Electron, usamos el Bridge IPC expuesto en preload.
+     */
     React.useEffect(() => {
         const fetchPort = async () => {
             if ((window as any).ipcRenderer) {
@@ -70,17 +87,25 @@ export const Dashboard: React.FC = () => {
         fetchPort();
     }, []);
 
+    // Estado para gestionar qué acción disparó el modal de selección de jugador
     const [modalAction, setModalAction] = useState<{
         type: 'score' | 'card';
         teamId: 'home' | 'away';
         details: any; // e.g. score type or card type
     } | null>(null);
 
+    /**
+     * Abre el modal para seleccionar quién anotó o recibió tarjeta.
+     */
     const openSelector = (teamId: 'home' | 'away', type: 'score' | 'card', details: any) => {
         setModalAction({ teamId, type, details });
         setIsModalOpen(true);
     };
 
+    /**
+     * Callback cuando se selecciona un jugador en el modal.
+     * Ejecuta la acción pendiente (sumar puntos o dar tarjeta).
+     */
     const handlePlayerSelect = (player: Player | null) => {
         if (!modalAction) return;
 

@@ -3,21 +3,31 @@ import { useMatch } from '../context/MatchContext';
 import { Player } from '../types';
 
 interface LineupEditorProps {
-    teamId: 'home' | 'away';
+    teamId: 'home' | 'away'; // Equipo al que pertenece
 }
 
+/**
+ * Componente: LineupEditor
+ * Gestiona la lista de jugadores (Titulares vs Banquillo).
+ * Permite agregar, eliminar y listar jugadores.
+ */
 export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
     const { matchState, updateTeamInfo, setOverlayView } = useMatch();
     const team = matchState[teamId];
+    // Estado local para el formulario de nuevo jugador
     const [newName, setNewName] = useState('');
     const [newNumber, setNewNumber] = useState('');
     const [isStarter, setIsStarter] = useState(true);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+    /**
+     * Añade un nuevo jugador a la lista.
+     * Valida que no exista el número duplicado.
+     */
     const addPlayer = () => {
         if (!newName || !newNumber) return;
 
-        // Validation: Check for duplicate number
+        // Validación: Revisar número duplicado
         const exists = (team.lineup || []).some((p: Player) => p.number === newNumber);
         if (exists) {
             setErrorMsg(`Player #${newNumber} already exists!`);
@@ -47,6 +57,7 @@ export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
         <div className="panel">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `3px solid ${matchState[teamId].info.color}`, paddingBottom: 10, marginBottom: 15 }}>
                 <h3 style={{ margin: 0, color: 'white' }}>{matchState[teamId].info.name}</h3>
+                {/* Botón para mostrar la alineación en pantalla */}
                 <button
                     onClick={() => {
                         const isShowing = matchState.overlay?.activeView === `lineup_${teamId}`;
@@ -63,6 +74,7 @@ export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
                 </button>
             </div>
 
+            {/* Formulario de Input */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 15, alignItems: 'center' }}>
                 <input
                     className="input-field"
@@ -90,7 +102,7 @@ export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
                 <button onClick={addPlayer} className="btn btn-success" style={{ padding: '0 20px', fontSize: '1.2em' }}>+</button>
             </div>
 
-            {/* Inline Error Message */}
+            {/* Mensaje de Error en línea */}
             {errorMsg && (
                 <div style={{
                     background: '#ffcdd2',
@@ -110,7 +122,7 @@ export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
             )}
 
             <div style={{ maxHeight: 400, overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                {/* Starters Column */}
+                {/* Columna Titulares */}
                 <div>
                     <h4 style={{ margin: '10px 0 10px', color: '#aaa', borderBottom: '1px solid #444', paddingBottom: 5 }}>Titulares</h4>
                     {matchState[teamId].lineup.filter((p: any) => p.isStarter).map((p: any) => (
@@ -121,7 +133,7 @@ export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
                     ))}
                 </div>
 
-                {/* Bench Column */}
+                {/* Columna Suplentes */}
                 <div>
                     <h4 style={{ margin: '10px 0 10px', color: '#aaa', borderBottom: '1px solid #444', paddingBottom: 5 }}>Finalizadores/as</h4>
                     {matchState[teamId].lineup.filter((p: any) => !p.isStarter).map((p: any) => (

@@ -1,5 +1,11 @@
 import { EventEmitter } from 'events';
 
+/**
+ * Clase TimerManager
+ * Gestiona el cronómetro del partido en el backend (Electron/Node).
+ * Mantiene la precisión del tiempo y emite eventos 'tick' cada segundo.
+ * Funciona de forma independiente al frontend para evitar desajustes si la UI se refresca.
+ */
 export class TimerManager extends EventEmitter {
     private startTime: number = 0;
     private accumulatedTime: number = 0; // ms
@@ -15,6 +21,9 @@ export class TimerManager extends EventEmitter {
         return Math.floor((this.accumulatedTime + currentChunk) / 1000);
     }
 
+    /**
+     * Inicia el cronómetro si no está corriendo.
+     */
     start() {
         if (this.isRunning) return;
         this.isRunning = true;
@@ -25,6 +34,9 @@ export class TimerManager extends EventEmitter {
         }, 1000);
     }
 
+    /**
+     * Pausa el cronómetro y acumula el tiempo transcurrido.
+     */
     stop() {
         if (!this.isRunning) return;
         this.isRunning = false;
@@ -33,12 +45,19 @@ export class TimerManager extends EventEmitter {
         this.emit('tick', this.getTimeSeconds());
     }
 
+    /**
+     * Reinicia el cronómetro a un valor específico (por defecto 0).
+     */
     reset(newTimeSeconds: number = 0) {
         this.stop();
         this.accumulatedTime = newTimeSeconds * 1000;
         this.emit('tick', this.getTimeSeconds());
     }
 
+    /**
+     * Establece el tiempo actual manualmente.
+     * Si estaba corriendo, se reanuda desde el nuevo tiempo.
+     */
     set(newTimeSeconds: number) {
         const wasRunning = this.isRunning;
         this.stop();

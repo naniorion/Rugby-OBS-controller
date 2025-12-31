@@ -5,8 +5,12 @@ import renderer from 'vite-plugin-electron-renderer'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
+/**
+ * Configuración de Vite para Electron + React.
+ * Utiliza plugins para integrar el proceso principal (Main) y el de renderizado (Renderer).
+ */
 export default defineConfig({
-    base: './',
+    base: './', // Necesario para rutas relativas en Electron (file://)
     plugins: [
         react(),
         electron([
@@ -17,8 +21,7 @@ export default defineConfig({
             {
                 entry: 'electron/preload.ts',
                 onstart(options) {
-                    // Notify the Renderer-Process to reload the page when the Preload-Scripts build is complete, 
-                    // instead of restarting the entire Electron App.
+                    // Notifica al proceso de renderizado para recargar la página cuando el script de preload se reconstruye
                     options.reload()
                 },
             },

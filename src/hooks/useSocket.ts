@@ -11,7 +11,8 @@ export const useSocket = () => {
         const connect = async () => {
             let port = 3000;
 
-            // Method 1: Electron IPC (Dashboard App)
+            // Método 1: Electron IPC (App de Escritorio)
+            // Si funciona dentro de Electron, pedimos el puerto al proceso principal
             if ((window as any).ipcRenderer && (window as any).ipcRenderer.getServerPort) {
                 try {
                     port = await (window as any).ipcRenderer.getServerPort();
@@ -19,10 +20,10 @@ export const useSocket = () => {
                     console.warn('IPC port fetch failed', e);
                 }
             }
-            // Method 2: Browser/OBS (served by Express)
+            // Método 2: Navegador/OBS (servido por Express/Vite)
+            // Si estamos en un navegador, deducimos el puerto.
             else if (window.location.port && window.location.protocol.includes('http')) {
-                // If we are served from the express server, use its port
-                // Dev server is usually 5173, so we verify.
+                // Intentamos usar el mismo puerto si estamos en producción/express
                 const locPort = parseInt(window.location.port);
                 if (locPort >= 3000 && locPort < 4000) { // Assumption: our server is in 3000 range
                     port = locPort;
@@ -36,6 +37,7 @@ export const useSocket = () => {
             newSocket.on('connect', () => setIsConnected(true));
             newSocket.on('disconnect', () => setIsConnected(false));
 
+            // Escuchar actualizaciones completas del estado desde el servidor
             newSocket.on('state-update', (newState: MatchState) => {
                 setMatchState(newState);
             });
@@ -51,6 +53,10 @@ export const useSocket = () => {
         };
     }, []);
 
+    /**
+     * Envía actualizaciones de estado al servidor.
+     * El servidor luego retransmite a todos los clientes (broadcast).
+     */
     const updateState = useCallback((updates: Partial<MatchState>) => {
         if (socket) {
             socket.emit('update-state', updates);
@@ -58,6 +64,9 @@ export const useSocket = () => {
         }
     }, [socket]);
 
+    /**
+     * Envía comandos específicos (ej: timer-start) que ejecutan lógica en el servidor.
+     */
     const sendCommand = useCallback((command: string, ...args: any[]) => {
         if (socket) {
             socket.emit(command, ...args);

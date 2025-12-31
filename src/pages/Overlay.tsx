@@ -2,10 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useMatch } from '../context/MatchContext';
 import './Overlay.css'; // Import the CSS
 
+/**
+ * Componente Overlay: La vista que se muestra en OBS.
+ * Muestra el marcador, el tiempo, rótulos, alineaciones y notificaciones de eventos.
+ * Reacciona en tiempo real a los cambios en el contexto (MatchContext).
+ */
 export const Overlay: React.FC = () => {
     const { matchState } = useMatch();
     const { home, away, timer, cards } = matchState;
 
+    // Estado local para controlar la visibilidad de notificaciones emergentes (ej. GOL, Cambio)
     const [notification, setNotification] = useState<{
         visible: boolean;
         type: 'sub' | 'score' | 'card' | null;
@@ -23,28 +29,33 @@ export const Overlay: React.FC = () => {
         }
     }, [matchState.actions]);
 
-    // We need a ref to track the last handled action ID to avoid re-showing on refresh
+    // Referencia para rastrear el ID de la última acción procesada y evitar notificaciones duplicadas al reconectar
     const lastActionIdRef = React.useRef<string | null>(null);
 
+    /**
+     * Efecto que observa la lista de 'actions' para disparar notificaciones visuales.
+     * Se ejecuta cada vez que cambia la lista de acciones o las tarjetas.
+     */
     useEffect(() => {
         if (matchState.actions && matchState.actions.length > 0) {
             const latest = matchState.actions[0];
+            // Si es una acción nueva (ID diferente al último visto)
             if (latest.id !== lastActionIdRef.current) {
-                // If we have a previous action, and the new one is OLDER (smaller ID), it means we deleted the latest one.
-                // In that case, we update our reference but DO NOT trigger a notification.
+                // Validación: Si la nueva acción tiene ID menor que la actual, significa que se borró la última acción (undo).
+                // En ese caso, actualizamos la referencia pero NO mostramos notificación.
                 if (lastActionIdRef.current && parseInt(latest.id) < parseInt(lastActionIdRef.current)) {
                     lastActionIdRef.current = latest.id;
                     return;
                 }
                 lastActionIdRef.current = latest.id;
 
-                // Triggers
+                // Lógica de disparadores (Triggers)
                 if (latest.type === 'sub') {
                     setNotification({ visible: true, type: 'sub', data: latest });
                     setTimeout(() => setNotification(curr => ({ ...curr, visible: false })), 5000);
                 } else if (['try', 'conversion', 'penalty', 'drop', 'card', 'penaltyTry'].includes(latest.type)) {
                     if (latest.player || ['try', 'conversion', 'penalty', 'drop', 'penaltyTry'].includes(latest.type)) {
-                        // Enhance data for cards
+                        // Enriquecemos los datos si es una tarjeta
                         let extraData = {};
                         if (latest.type === 'card') {
                             const relatedCard = cards.find((c: any) => c.id === latest.linkedId);
@@ -71,8 +82,12 @@ export const Overlay: React.FC = () => {
 
     const activeView = matchState.overlay?.activeView || 'scoreboard';
 
+    /**
+     * Helper para obtener el icono o imagen correspondiente a un tipo de acción.
+     * Soporta rutas locales de imágenes y SVGs inline.
+     */
     const getActionIcon = (type: string) => {
-        // Custom PNG Icons for Scoring
+        // Mapa de Iconos PNG personalizados
         const iconMap: { [key: string]: string } = {
             'try': '/icons/ensayo_.png',
             'penaltyTry': '/icons/ensayo_castigo.png',
@@ -91,7 +106,7 @@ export const Overlay: React.FC = () => {
             );
         }
 
-        // Substitution Icon
+        // Icono de Sustitución
         if (type === 'sub') {
             return (
                 <img
@@ -102,8 +117,7 @@ export const Overlay: React.FC = () => {
             );
         }
 
-        // Cards: Pure SVG, no silhouette as requested
-        // Handle both 'card-{type}' and just '{type}' if passed correctly
+        // Tarjetas: SVG puro
         if (type.includes('yellow') || type.includes('red') || type === 'card') {
             const isRed = type.includes('red');
             const color = isRed ? '#ff4444' : '#ffd700';
@@ -128,7 +142,10 @@ export const Overlay: React.FC = () => {
         return null;
     };
 
-    // Base Scoreboard Component
+    /**
+     * Renderiza el componente base del Marcador (Scoreboard).
+     * Incluye logo, nombre y puntuación de ambos equipos, y el temporizador central.
+     */
     const renderScoreboard = () => (
         <React.Fragment>
             <div className="scoreboard" style={{

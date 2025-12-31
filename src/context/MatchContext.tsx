@@ -33,45 +33,47 @@ interface MatchContextType {
 
 const MatchContext = createContext<MatchContextType | undefined>(undefined);
 
+/**
+ * Proveedor de Contexto (MatchProvider).
+ * Envuelve la aplicación para dar acceso al estado del partido y funciones de control.
+ */
 export const MatchProvider = ({ children }: { children: ReactNode }) => {
+    // Hooks personalizados para socket
     const { matchState, isConnected, updateState, sendCommand } = useSocket();
 
+    /**
+     * Actualiza el puntaje de un equipo y genera una acción en el log.
+     * @param team 'home' o 'away'
+     * @param type Tipo de anotación (try, conversion, etc.)
+     * @param delta Cantidad a sumar/restar (ej: +1 try)
+     * @param playerId ID del jugador que anotó (opcional)
+     */
     const updateScore = (team: 'home' | 'away', type: 'try' | 'conversion' | 'penalty' | 'drop' | 'manual' | 'penaltyTry', delta: number, playerId?: string) => {
-        // Calculate new values locally to send delta or absolute? 
-        // We will read current state and increment, then send update.
-        // In a real app we might send an "action" to the server to handle logic. 
-        // But here we'll compute and send full team object update.
-
+        // Obtenemos el estado actual del equipo
         const teamState = matchState[team];
         const newScore = { ...teamState.score };
 
+        // Aplicamos la lógica de incremento según el tipo
         if (type === 'try') newScore.tries = Math.max(0, newScore.tries + delta);
         if (type === 'conversion') newScore.conversions = Math.max(0, newScore.conversions + delta);
         if (type === 'penalty') newScore.penalties = Math.max(0, newScore.penalties + delta);
         if (type === 'drop') newScore.drops = Math.max(0, newScore.drops + delta);
         if (type === 'penaltyTry') {
+            // Penalty Try cuenta como stats separada y también suma al contador de tries normal
             newScore.penaltyTries = Math.max(0, (newScore.penaltyTries || 0) + delta);
-            newScore.tries = Math.max(0, newScore.tries + delta); // Also counts as a try stat-wise
+            newScore.tries = Math.max(0, newScore.tries + delta);
         }
-        if (type === 'manual') newScore.manual = (newScore.manual || 0) + delta; // Can be negative
+        if (type === 'manual') newScore.manual = (newScore.manual || 0) + delta;
 
-        // Recalculate total
-        // Note: penaltyTry is worth 7 points (5 try + 2 auto-conversion). 
-        // Since we increment 'tries' (+5), we need to ensure the math is correct.
-        // Option A: Total = Tries*5 + Conv*2 + Pen*3 + Drop*3 + Manual
-        // In this case, if penaltyTry adds +1 Try, we get 5 points. We need 2 more.
-        // We could also add +1 Conversion, but that messes up conversion stats.
-        // Better: Total = (Tries * 5) + (Conversions * 2) + (Penalties * 3) + (Drops * 3) + (PenaltyTries * 2) + Manual ?? No that's confusing.
-        // Let's explicitly calculate:
-        // Total = (Tries * 5) + (Conversions * 2) + (Penalties * 3) + (Drops * 3) + (PenaltyTries * 2) + Manual
-        // Wait, if we added to 'tries', then we have 5 points. We need 7 total. So we add 2 points for the auto-conversion element.
-        // So: Total = (Tries * 5) + (Conversions * 2) + (Penalties * 3) + (Drops * 3) + ((newScore.penaltyTries || 0) * 2) + (newScore.manual || 0);
-
+        // Recálculo del Puntaje Total
+        // Fórmula de Rugby: Try(5) + Conv(2) + Pen(3) + Drop(3) + PenaltyTry(7 auto)
+        // Nota: Como PenaltyTry suma a 'tries' (+5), necesitamos agregar 2 extra para llegar a 7.
         newScore.total = (newScore.tries * 5) + (newScore.conversions * 2) + (newScore.penalties * 3) + (newScore.drops * 3) + ((newScore.penaltyTries || 0) * 2) + (newScore.manual || 0);
 
-        // Find Player info if playerId provided
+        // Buscar jugador si fue provisto
         const player = playerId ? teamState.lineup.find((p: any) => p.id === playerId) : undefined;
-        // Construct description
+
+        // Construir descripción para el log
         let desc = `${team === 'home' ? matchState.home.info.name : matchState.away.info.name} scored a ${type}`;
         if (type === 'penaltyTry') desc = `${team === 'home' ? matchState.home.info.name : matchState.away.info.name} awarded Penalty Try`;
 
@@ -79,13 +81,12 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
             desc = `${player.name} (#${player.number}) scored a ${type}`;
         }
 
-        // ... rest of the function ...
-
+        // Crear nueva acción
         const newAction = {
             id: Date.now().toString(),
             type: type,
             teamId: team,
-            player: player, // Add player object to action
+            player: player,
             description: desc,
             timestamp: matchState.timer.value ? `${Math.floor(matchState.timer.value / 60)}:${(matchState.timer.value % 60).toString().padStart(2, '0')}` : '00:00',
             scoreSnapshot: {
@@ -96,14 +97,20 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
 
         const currentActions = matchState.actions || [];
 
+        // Enviar actualización al servidor/socket
         updateState({
             [team]: { ...teamState, score: newScore },
             actions: [newAction, ...currentActions]
         });
     };
 
+    /**
+     * Realiza una sustitución de jugadores.
+     * Actualiza el 'lineup' (quién está en campo) y genera la acción.
+     */
     const performSub = (teamId: 'home' | 'away', playerInId: string, playerOutId: string) => {
         const team = matchState[teamId];
+        // Actualizar flags isOnField
         const newLinup = team.lineup.map((p: any) => {
             if (p.id === playerInId) return { ...p, isOnField: true };
             if (p.id === playerOutId) return { ...p, isOnField: false };
@@ -118,6 +125,7 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
 
+        // Crear objeto sustitución
         const newSub: Substitution = {
             id: Date.now().toString(),
             teamId,
@@ -132,7 +140,6 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
             teamId,
             description: `Substitution: ${playerIn.name} In, ${playerOut.name} Out`,
             timestamp: newSub.matchTime,
-            // Attach details for Overlay
             subDetails: {
                 playerIn: { name: playerIn.name, number: playerIn.number, id: playerIn.id },
                 playerOut: { name: playerOut.name, number: playerOut.number, id: playerOut.id }
@@ -150,6 +157,9 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
+    /**
+     * Control del cronómetro. Envía comandos al backend (Electron/Express).
+     */
     const updateTimer = (action: 'start' | 'stop' | 'reset' | 'set', val?: number) => {
         if (action === 'start') sendCommand('timer-start');
         if (action === 'stop') sendCommand('timer-stop');
@@ -157,17 +167,17 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         if (action === 'set') sendCommand('timer-set', val || 0);
     };
 
+    /**
+     * Actualiza información general del equipo (nombre, color, logo).
+     */
     const updateTeamInfo = (team: 'home' | 'away', updates: any) => {
         const teamState = matchState[team];
         const newTeamState = { ...teamState };
 
-        // Handle lineup specifically if present
         if ('lineup' in updates) {
             newTeamState.lineup = updates.lineup;
         }
 
-        // Handle generic info updates (name, color, logoVal)
-        // We exclude 'lineup' from being added to 'info'
         const { lineup, ...infoUpdates } = updates;
         if (Object.keys(infoUpdates).length > 0) {
             newTeamState.info = { ...teamState.info, ...infoUpdates };
@@ -178,8 +188,10 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
+    /**
+     * Añade una tarjeta (amarilla/roja) y su acción correspondiente.
+     */
     const addCard = (card: any) => {
-        // Append to cards
         const newAction = {
             id: Date.now().toString(),
             type: 'card' as const,
@@ -187,9 +199,9 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
             teamId: card.teamId,
             description: `Card (${card.type}) for #${card.player?.number || '?'}`,
             timestamp: matchState.timer.value ? `${Math.floor(matchState.timer.value / 60)}:${(matchState.timer.value % 60).toString().padStart(2, '0')}` : '00:00',
-            linkedId: card.id, // Link this action to the card
-            player: card.player, // Attach player for Overlay
-            scoreSnapshot: { // For cards, score doesn't change, usage current state
+            linkedId: card.id,
+            player: card.player,
+            scoreSnapshot: {
                 home: matchState.home.score.total,
                 away: matchState.away.score.total
             }
@@ -204,9 +216,12 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
+    /**
+     * Elimina una tarjeta activa.
+     */
     const removeCard = (cardId: string) => {
         const newCards = matchState.cards.filter((c: any) => c.id !== cardId);
-        // Also remove associated action from log
+        // También eliminamos la acción asociada del log para mantener consistencia
         const newActions = (matchState.actions || []).filter((a: any) => a.linkedId !== cardId);
 
         updateState({
@@ -215,6 +230,9 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
+    /**
+     * Cambia la vista activa del Overlay (Tablero, Alineación, etc.).
+     */
     const setOverlayView = (view: 'scoreboard' | 'lineup_home' | 'lineup_away' | 'custom_label' | 'match_summary' | 'stats_comparison' | 'stats_lower', text?: string, subtext?: string, color?: string) => {
         updateState({ overlay: { activeView: view, customLabelText: text, customLabelSubtext: subtext, customLabelColor: color } });
     }
@@ -231,22 +249,25 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         updateState({ savedLabels: newLabels });
     };
 
+    /**
+     * Elimina una acción del historial y revierte sus efectos (UNDO).
+     */
     const deleteAction = (actionId: string) => {
         const currentActions = matchState.actions || [];
         const actionToDelete = currentActions.find((a: any) => a.id === actionId);
 
         if (!actionToDelete) return;
 
-        // UNDO LOGIC
+        // Lógica de Deshacer (Undo)
         const updates: any = {};
 
-        // 1. Revert Score
+        // 1. Revertir Puntaje
         if (['try', 'conversion', 'penalty', 'drop', 'penaltyTry'].includes(actionToDelete.type)) {
             const teamId = actionToDelete.teamId;
             const teamState = matchState[teamId];
             const newScore = { ...teamState.score };
 
-            // Determine values to subtract
+            // Restar lo que se sumó
             if (actionToDelete.type === 'try') {
                 newScore.tries = Math.max(0, newScore.tries - 1);
             } else if (actionToDelete.type === 'conversion') {
@@ -260,24 +281,24 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
                 newScore.tries = Math.max(0, newScore.tries - 1);
             }
 
-            // Recalculate total
+            // Recalcular total
             newScore.total = (newScore.tries * 5) + (newScore.conversions * 2) + (newScore.penalties * 3) + (newScore.drops * 3) + ((newScore.penaltyTries || 0) * 2) + (newScore.manual || 0);
 
             updates[teamId] = { ...teamState, score: newScore };
         }
 
-        // 2. Revert Card
+        // 2. Revertir Tarjeta
         else if (actionToDelete.type === 'card' && actionToDelete.linkedId) {
             const newCards = matchState.cards.filter((c: any) => c.id !== actionToDelete.linkedId);
             updates.cards = newCards;
         }
 
-        // 3. Revert Sub
+        // 3. Revertir Sustitución
         else if (actionToDelete.type === 'sub' && actionToDelete.subDetails) {
             const { teamId, subDetails } = actionToDelete;
             if (subDetails.playerIn?.id && subDetails.playerOut?.id) {
-                // Swap them back: In -> Off field, Out -> On field
-                const team = updates[teamId] || matchState[teamId]; // Use pending update if exists
+                // Intercambiar de nuevo: El que entró (In) sale, el que salió (Out) entra.
+                const team = updates[teamId] || matchState[teamId];
                 const newLineup = team.lineup.map((p: any) => {
                     if (p.id === subDetails.playerIn.id) return { ...p, isOnField: false };
                     if (p.id === subDetails.playerOut.id) return { ...p, isOnField: true };
@@ -287,7 +308,7 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
-        // Apply updates
+        // Aplicar todos los cambios
         const newActions = currentActions.filter((a: any) => a.id !== actionId);
         updateState({ ...updates, actions: newActions });
     };
@@ -303,15 +324,15 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const connectOBS = (config: { address: string; password: string }) => {
-        // Send connect request to backend
         sendCommand('obs-connect', config);
     };
 
+    /**
+     * Establece el tiempo de juego (1er o 2do tiempo).
+     * Ajusta el reloj automáticamente (0:00 o 40:00).
+     */
     const setHalf = (half: 1 | 2) => {
-        const timeVal = half === 2 ? 2400 : 0; // 40 minutes * 60 seconds
-
-        // Update local state and backend state via updateState
-        // Note: We also need to set the timer value on the backend so the tick starts from there.
+        const timeVal = half === 2 ? 2400 : 0; // 40 minutos * 60 segundos
         sendCommand('timer-reset', timeVal);
 
         updateState({
@@ -324,21 +345,18 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
+    /**
+     * Reinicia todo el partido a 0.
+     */
     const resetMatch = () => {
-        // Stop backend timer
         sendCommand('timer-reset', 0);
-
         updateState({
-            // Reset scores
             home: { ...matchState.home, score: { tries: 0, conversions: 0, penalties: 0, drops: 0, penaltyTries: 0, manual: 0, total: 0 } },
             away: { ...matchState.away, score: { tries: 0, conversions: 0, penalties: 0, drops: 0, penaltyTries: 0, manual: 0, total: 0 } },
-            // Reset timer & half
             timer: { ...matchState.timer, value: 0, isRunning: false, half: 1, label: '1st Half' },
-            // Clear lists
             cards: [],
             subs: [],
             actions: []
-            // Preserves info, savedLabels, summaryConfig, obsConfig, overlay
         });
     };
 

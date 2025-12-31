@@ -4,6 +4,11 @@ import { MatchProvider } from './context/MatchContext';
 import { Dashboard } from './pages/Dashboard';
 import { Overlay } from './pages/Overlay';
 
+/**
+ * Componente Raíz de la Aplicación.
+ * Configura el enrutamiento (Routes) y provee el contexto global (MatchProvider)
+ * a todas las vistas (Dashboard y Overlay).
+ */
 function App() {
     return (
         <MatchProvider>

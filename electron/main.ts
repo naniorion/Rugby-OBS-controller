@@ -11,6 +11,8 @@ import OBSWebSocket from 'obs-websocket-js';
 
 const obs = new OBSWebSocket();
 
+// Estado Global del Partido en el Servidor (Source of Truth)
+// Se mantiene aquí para persistencia entre recargas de la UI y para nuevos clientes (Overlay OBS).
 let matchState: any = {
     // ... (keep all matchState init same)
     home: {
@@ -57,6 +59,10 @@ const io = new Server(httpServer, {
 
 const timerManager = new TimerManager();
 
+/**
+ * Inicia el servidor HTTP y Socket.IO.
+ * Busca un puerto libre comenzando desde el 3000 si está ocupado.
+ */
 const startServer = (port: number) => {
     httpServer.listen(port, () => {
         SERVER_PORT = port;
@@ -81,7 +87,8 @@ ipcMain.handle('get-server-port', () => SERVER_PORT);
 // ... Timer Events ...
 
 
-// Timer Events
+// Eventos del Temporizador (Backend)
+// Actualiza el estado global cada segundo y gestiona la cuenta atrás de las tarjetas amarillas.
 timerManager.on('tick', (seconds) => {
     // ... (keep existing timer logic)
     matchState.timer.value = seconds;
@@ -109,6 +116,9 @@ timerManager.on('tick', (seconds) => {
     io.emit('state-update', matchState);
 });
 
+/**
+ * Gestión de Conexiones de Clientes (UI Dashboard y Overlay OBS).
+ */
 io.on('connection', (socket) => {
     // ... (keep existing socket logic)
     console.log('Client connected:', socket.id);
@@ -203,6 +213,10 @@ process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(__dirnam
 let win: BrowserWindow | null
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
+/**
+ * Crea la ventana principal de Electron.
+ * En desarrollo carga desde localhost (Vite dev server), en producción carga index.html compilado.
+ */
 function createWindow() {
     win = new BrowserWindow({
         width: 1400,
