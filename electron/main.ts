@@ -35,7 +35,24 @@ let matchState: any = {
     obsConfig: { address: 'ws://localhost:4455', password: '', isConnected: false },
     leagueLogo: '',
     scoreboardConfig: { scale: 1, opacity: 1 },
-    leagueLogoConfig: { scale: 1, opacity: 1 }
+    leagueLogoConfig: { scale: 1, opacity: 1 },
+    presentation: {
+        title: '',
+        posterImage: '',
+        showPoster: false,
+        posterConfig: { scale: 1, opacity: 1 },
+        logosConfig: { scale: 1, opacity: 1 },
+        referee: '',
+        assistants: '',
+        commentators: '',
+        field: ''
+    },
+    sponsors: {
+        image: '',
+        show: false,
+        scale: 1,
+        opacity: 1
+    }
 };
 
 // ... imports
@@ -99,16 +116,15 @@ timerManager.on('tick', (seconds) => {
     if (matchState.cards.length > 0) {
         // Decrement first
         matchState.cards.forEach((card: any) => {
-            if (card.type === 'yellow' && card.remainingSeconds > 0) {
+            if ((card.type === 'yellow' || card.type === 'red-20') && card.remainingSeconds > 0) {
                 card.remainingSeconds--;
             }
         });
 
-        // Remove expired yellow cards from active list
-        // Red cards persist until manually removed
+        // Remove expired cards from active list
         matchState.cards = matchState.cards.filter((card: any) => {
-            if (card.type === 'yellow' && card.remainingSeconds <= 0) {
-                return false; // Remove expired yellow card
+            if ((card.type === 'yellow' || card.type === 'red-20') && card.remainingSeconds <= 0) {
+                return false; // Remove expired card
             }
             return true; // Keep others
         });
@@ -127,6 +143,8 @@ io.on('connection', (socket) => {
 
     // General State Update (merging)
     socket.on('update-state', (partialState) => {
+
+
         if (partialState.home) matchState.home = { ...matchState.home, ...partialState.home };
         if (partialState.away) matchState.away = { ...matchState.away, ...partialState.away };
         if (partialState.actions) matchState.actions = partialState.actions;
@@ -151,6 +169,12 @@ io.on('connection', (socket) => {
         }
         if (partialState.leagueLogoConfig) {
             matchState.leagueLogoConfig = { ...matchState.leagueLogoConfig, ...partialState.leagueLogoConfig };
+        }
+        if (partialState.presentation) {
+            matchState.presentation = { ...matchState.presentation, ...partialState.presentation };
+        }
+        if (partialState.sponsors) {
+            matchState.sponsors = { ...matchState.sponsors, ...partialState.sponsors };
         }
 
         io.emit('state-update', matchState);
@@ -222,7 +246,7 @@ function createWindow() {
     win = new BrowserWindow({
         width: 1400,
         height: 900,
-        icon: path.join(process.env.VITE_PUBLIC || '', 'electron-vite.svg'),
+        icon: path.join(process.env.VITE_PUBLIC || '', 'icon.ico'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
         },

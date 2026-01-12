@@ -68,7 +68,7 @@ const Tab = ({ children }: any) => children;
  */
 export const Dashboard: React.FC = () => {
     // Consumimos todas las funciones del contexto global para manipular el estado
-    const { matchState, isConnected, updateScore, updateTimer, updateTeamInfo, addCard, removeCard, setOverlayView, setHalf, resetMatch, setLeagueLogo, setScoreboardConfig, setLeagueLogoConfig } = useMatch() as any;
+    const { matchState, isConnected, updateScore, updateTimer, updateTeamInfo, addCard, removeCard, setOverlayView, setHalf, resetMatch, setLeagueLogo, setScoreboardConfig, setLeagueLogoConfig, setPresentationConfig, setSponsorsConfig } = useMatch() as any;
     const { home, away, timer, cards } = matchState;
 
     // Estado para Modales y Puerto del Servidor
@@ -117,14 +117,17 @@ export const Dashboard: React.FC = () => {
             // Handle unknown player for cards
             const cardPlayer = player || { id: 'unknown-' + Date.now(), name: 'Desconocido', number: '', isStarter: false };
 
-            addCard({
+            const cardPayload = {
                 id: Date.now().toString(),
                 teamId: modalAction.teamId,
                 player: cardPlayer,
                 type: modalAction.details.cardType,
                 timestamp: Date.now(),
-                remainingSeconds: modalAction.details.cardType === 'yellow' ? 600 : 0
-            });
+                remainingSeconds: modalAction.details.cardType === 'yellow' ? 600 : (modalAction.details.cardType === 'red-20' ? 1200 : 0)
+            };
+            console.log('[Dashboard] Calling addCard with:', cardPayload);
+
+            addCard(cardPayload);
         }
         setIsModalOpen(false);
     };
@@ -266,6 +269,7 @@ export const Dashboard: React.FC = () => {
                                 <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9em', color: '#aaa' }}>Tarjetas</h4>
                                 <div style={{ display: 'flex', gap: 10 }}>
                                     <button onClick={() => openSelector('home', 'card', { cardType: 'yellow' })} className="btn" style={{ background: '#ffeb3b', color: 'black', flex: 1 }}>Amarilla</button>
+                                    <button onClick={() => openSelector('home', 'card', { cardType: 'red-20' })} className="btn" style={{ background: '#b71c1c', color: 'white', flex: 1 }}>Roja 20m</button>
                                     <button onClick={() => openSelector('home', 'card', { cardType: 'red' })} className="btn" style={{ background: '#f44336', color: 'white', flex: 1 }}>Roja</button>
                                 </div>
                             </div>
@@ -438,6 +442,37 @@ export const Dashboard: React.FC = () => {
                                     >
                                         Alineación V
                                     </button>
+                                    <button
+                                        onClick={() => setOverlayView(matchState.overlay.activeView === 'presentation' ? 'scoreboard' : 'presentation')}
+                                        className="btn"
+                                        style={{
+                                            background: '#673ab7',
+                                            color: 'white',
+                                            border: matchState.overlay.activeView === 'presentation' ? '2px solid #4caf50' : 'none',
+                                            padding: '8px',
+                                            fontSize: '0.9em'
+                                        }}
+                                    >
+                                        Presentación
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (!matchState.sponsors?.image) {
+                                                alert("Primero debes subir una imagen para los Patrocinadores (Pestaña 'Presentación').");
+                                                return;
+                                            }
+                                            setSponsorsConfig && setSponsorsConfig({ ...(matchState.sponsors || {}), show: !matchState.sponsors?.show });
+                                        }}
+                                        className="btn"
+                                        style={{
+                                            background: matchState.sponsors?.show ? '#4caf50' : '#607d8b',
+                                            color: 'white',
+                                            padding: '8px',
+                                            fontSize: '0.9em'
+                                        }}
+                                    >
+                                        Patrocinadores
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -506,6 +541,7 @@ export const Dashboard: React.FC = () => {
                                 <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9em', color: '#aaa' }}>Tarjetas</h4>
                                 <div style={{ display: 'flex', gap: 10 }}>
                                     <button onClick={() => openSelector('away', 'card', { cardType: 'yellow' })} className="btn" style={{ background: '#ffeb3b', color: 'black', flex: 1 }}>Amarilla</button>
+                                    <button onClick={() => openSelector('away', 'card', { cardType: 'red-20' })} className="btn" style={{ background: '#b71c1c', color: 'white', flex: 1 }}>Roja 20m</button>
                                     <button onClick={() => openSelector('away', 'card', { cardType: 'red' })} className="btn" style={{ background: '#f44336', color: 'white', flex: 1 }}>Roja</button>
                                 </div>
                             </div>
@@ -527,6 +563,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                         </div>
                     </div>
+
                     {/* Saved Labels (Full Width) */}
                     <div className="panel" style={{ marginTop: 20 }}>
                         <h4 style={{ margin: '0 0 15px 0', color: '#aaa', fontSize: '1em', textTransform: 'uppercase' }}>Rótulos Guardados</h4>
@@ -576,9 +613,162 @@ export const Dashboard: React.FC = () => {
                 <Tab label="Rótulos">
                     <LabelManager />
                 </Tab>
+                <Tab label="Presentación">
+                    <div className="panel">
+                        <h3 className="section-title">Vista de Presentación</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: 5 }}>Título del Partido</label>
+                                <input
+                                    className="input-field"
+                                    value={matchState.presentation?.title || ''}
+                                    onChange={(e) => setPresentationConfig && setPresentationConfig({ ...(matchState.presentation || {}), title: e.target.value })}
+                                    placeholder="MATCH DAY"
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: 5 }}>Cartel del Partido</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="input-field"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => setPresentationConfig && setPresentationConfig({ ...(matchState.presentation || {}), posterImage: reader.result as string });
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                        style={{ width: '100%', fontSize: '0.8em' }}
+                                    />
+                                    {matchState.presentation?.posterImage && (
+                                        <div style={{ position: 'relative' }}>
+                                            <img src={matchState.presentation.posterImage} alt="Poster" style={{ height: 40, background: '#fff', padding: 2, borderRadius: 4 }} />
+                                            <button
+                                                onClick={() => setPresentationConfig && setPresentationConfig({ ...(matchState.presentation || {}), posterImage: '' })}
+                                                style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', border: 'none', width: 20, height: 20, cursor: 'pointer', lineHeight: '18px', padding: 0 }}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Poster Config */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                    <div>
+                                        <label style={{ fontSize: '0.8em', color: '#ccc' }}>Tamaño: {matchState.presentation?.posterConfig?.scale || 1}x</label>
+                                        <input
+                                            type="range"
+                                            min="0.5" max="2" step="0.1"
+                                            value={matchState.presentation?.posterConfig?.scale || 1}
+                                            onChange={(e) => setPresentationConfig && setPresentationConfig({
+                                                ...(matchState.presentation || {}),
+                                                posterConfig: { ...(matchState.presentation?.posterConfig || { scale: 1, opacity: 1 }), scale: parseFloat(e.target.value) }
+                                            })}
+                                            style={{ width: '100%' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '0.8em', color: '#ccc' }}>Opacidad: {matchState.presentation?.posterConfig?.opacity || 1}</label>
+                                        <input
+                                            type="range"
+                                            min="0.1" max="1" step="0.1"
+                                            value={matchState.presentation?.posterConfig?.opacity || 1}
+                                            onChange={(e) => setPresentationConfig && setPresentationConfig({
+                                                ...(matchState.presentation || {}),
+                                                posterConfig: { ...(matchState.presentation?.posterConfig || { scale: 1, opacity: 1 }), opacity: parseFloat(e.target.value) }
+                                            })}
+                                            style={{ width: '100%' }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Logos Config */}
+                        <div style={{ marginTop: 20, padding: 15, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }}>
+                            <h4 style={{ margin: '0 0 10px 0', fontSize: '1em' }}>Configuración Logos Equipos</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                                <div>
+                                    <label style={{ fontSize: '0.8em', color: '#ccc', display: 'block' }}>Tamaño: {matchState.presentation?.logosConfig?.scale || 1}x</label>
+                                    <input
+                                        type="range"
+                                        min="0.5" max="2" step="0.1"
+                                        value={matchState.presentation?.logosConfig?.scale || 1}
+                                        onChange={(e) => setPresentationConfig && setPresentationConfig({
+                                            ...(matchState.presentation || {}),
+                                            logosConfig: { ...(matchState.presentation?.logosConfig || { scale: 1, opacity: 1 }), scale: parseFloat(e.target.value) }
+                                        })}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.8em', color: '#ccc', display: 'block' }}>Opacidad: {matchState.presentation?.logosConfig?.opacity || 1}</label>
+                                    <input
+                                        type="range"
+                                        min="0.1" max="1" step="0.1"
+                                        value={matchState.presentation?.logosConfig?.opacity || 1}
+                                        onChange={(e) => setPresentationConfig && setPresentationConfig({
+                                            ...(matchState.presentation || {}),
+                                            logosConfig: { ...(matchState.presentation?.logosConfig || { scale: 1, opacity: 1 }), opacity: parseFloat(e.target.value) }
+                                        })}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    {/* Additional Match Info Inputs - Replaced Sponsors here */}
+                    <div className="panel" style={{ marginTop: 20 }}>
+                        <h3 className="section-title">Información del Partido</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                            <div>
+                                <label style={{ fontSize: '0.9em', color: '#aaa', display: 'block', marginBottom: 5 }}>Árbitro</label>
+                                <input
+                                    className="input-field"
+                                    value={matchState.presentation?.referee || ''}
+                                    onChange={(e) => setPresentationConfig && setPresentationConfig({ ...(matchState.presentation || {}), referee: e.target.value })}
+                                    style={{ width: '100%', marginBottom: 10 }}
+                                    placeholder="Nombre del Árbitro"
+                                />
+                                <label style={{ fontSize: '0.9em', color: '#aaa', display: 'block', marginBottom: 5 }}>Asistentes</label>
+                                <input
+                                    className="input-field"
+                                    value={matchState.presentation?.assistants || ''}
+                                    onChange={(e) => setPresentationConfig && setPresentationConfig({ ...(matchState.presentation || {}), assistants: e.target.value })}
+                                    style={{ width: '100%', marginBottom: 10 }}
+                                    placeholder="Asistente 1, Asistente 2"
+                                />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.9em', color: '#aaa', display: 'block', marginBottom: 5 }}>Comentaristas</label>
+                                <input
+                                    className="input-field"
+                                    value={matchState.presentation?.commentators || ''}
+                                    onChange={(e) => setPresentationConfig && setPresentationConfig({ ...(matchState.presentation || {}), commentators: e.target.value })}
+                                    style={{ width: '100%', marginBottom: 10 }}
+                                    placeholder="Comentaristas..."
+                                />
+                                <label style={{ fontSize: '0.9em', color: '#aaa', display: 'block', marginBottom: 5 }}>Campo de Juego</label>
+                                <input
+                                    className="input-field"
+                                    value={matchState.presentation?.field || ''}
+                                    onChange={(e) => setPresentationConfig && setPresentationConfig({ ...(matchState.presentation || {}), field: e.target.value })}
+                                    style={{ width: '100%', marginBottom: 10 }}
+                                    placeholder="Estadio / Ciudad"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </Tab>
                 <Tab label="Resumen">
                     <ActionLog />
                 </Tab>
+
                 <Tab label="Configuración">
                     <div className="panel">
                         <h3 className="section-title">Conexión OBS</h3>
@@ -615,66 +805,123 @@ export const Dashboard: React.FC = () => {
 
                         <h3 className="section-title" style={{ marginTop: 30 }}>Personalización del Overlay</h3>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-                            {/* League Logo */}
-                            <div>
-                                <label style={{ display: 'block', marginBottom: 5 }}>Logo de la Liga</label>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="input-field"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => setLeagueLogo && setLeagueLogo(reader.result as string);
-                                                reader.readAsDataURL(file);
-                                            }
-                                        }}
-                                    />
-                                    {matchState.leagueLogo && (
-                                        <div style={{ position: 'relative' }}>
-                                            <img src={matchState.leagueLogo} alt="League Logo" style={{ height: 40, background: '#fff', padding: 2, borderRadius: 4 }} />
-                                            <button
-                                                onClick={() => setLeagueLogo && setLeagueLogo('')}
-                                                style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', border: 'none', width: 20, height: 20, cursor: 'pointer', lineHeight: '18px', padding: 0 }}
-                                            >
-                                                ×
-                                            </button>
-                                        </div>
-                                    )}
+                            {/* League Logo Group */}
+                            <div className="panel" style={{ background: 'rgba(255,255,255,0.05)', padding: 15 }}>
+                                <h4 style={{ margin: '0 0 15px 0', borderBottom: '1px solid #444', paddingBottom: 5 }}>Logo de la Liga</h4>
+                                <div style={{ marginBottom: 20 }}>
+                                    <label style={{ display: 'block', marginBottom: 5 }}>Imagen</label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="input-field"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => setLeagueLogo && setLeagueLogo(reader.result as string);
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                            style={{ width: '100%', fontSize: '0.8em' }}
+                                        />
+                                        {matchState.leagueLogo && (
+                                            <div style={{ position: 'relative' }}>
+                                                <img src={matchState.leagueLogo} alt="League Logo" style={{ height: 40, background: '#fff', padding: 2, borderRadius: 4 }} />
+                                                <button
+                                                    onClick={() => setLeagueLogo && setLeagueLogo('')}
+                                                    style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', border: 'none', width: 20, height: 20, cursor: 'pointer', lineHeight: '18px', padding: 0 }}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                {/* League Logo Config */}
-                                <div style={{ marginTop: 15, padding: 10, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }}>
-                                    <label style={{ display: 'block', marginBottom: 10, fontSize: '0.9em', color: '#aaa', borderBottom: '1px solid #444' }}>Configuración Logo</label>
-                                    <div style={{ marginBottom: 10 }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <label style={{ fontSize: '0.8em', color: '#ccc' }}>Tamaño: {matchState.leagueLogoConfig?.scale || 1}x</label>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="0.5"
-                                            max="2.0"
-                                            step="0.1"
-                                            value={matchState.leagueLogoConfig?.scale || 1}
-                                            onChange={(e) => setLeagueLogoConfig && setLeagueLogoConfig({ ...(matchState.leagueLogoConfig || { scale: 1, opacity: 1 }), scale: parseFloat(e.target.value) })}
-                                            style={{ width: '100%' }}
-                                        />
+                                {/* League Logo Config Sliders */}
+                                <div style={{ marginBottom: 10 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <label style={{ fontSize: '0.8em', color: '#ccc' }}>Tamaño: {matchState.leagueLogoConfig?.scale || 1}x</label>
                                     </div>
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <label style={{ fontSize: '0.8em', color: '#ccc' }}>Opacidad: {matchState.leagueLogoConfig?.opacity || 1}</label>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="0.1"
-                                            max="1.0"
-                                            step="0.1"
-                                            value={matchState.leagueLogoConfig?.opacity || 1}
-                                            onChange={(e) => setLeagueLogoConfig && setLeagueLogoConfig({ ...(matchState.leagueLogoConfig || { scale: 1, opacity: 1 }), opacity: parseFloat(e.target.value) })}
-                                            style={{ width: '100%' }}
-                                        />
+                                    <input
+                                        type="range"
+                                        min="0.5" max="2.0" step="0.1"
+                                        value={matchState.leagueLogoConfig?.scale || 1}
+                                        onChange={(e) => setLeagueLogoConfig && setLeagueLogoConfig({ ...(matchState.leagueLogoConfig || { scale: 1, opacity: 1 }), scale: parseFloat(e.target.value) })}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                                <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <label style={{ fontSize: '0.8em', color: '#ccc' }}>Opacidad: {matchState.leagueLogoConfig?.opacity || 1}</label>
                                     </div>
+                                    <input
+                                        type="range"
+                                        min="0.1" max="1.0" step="0.1"
+                                        value={matchState.leagueLogoConfig?.opacity || 1}
+                                        onChange={(e) => setLeagueLogoConfig && setLeagueLogoConfig({ ...(matchState.leagueLogoConfig || { scale: 1, opacity: 1 }), opacity: parseFloat(e.target.value) })}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Sponsors Config Group */}
+                            <div className="panel" style={{ background: 'rgba(255,255,255,0.05)', padding: 15 }}>
+                                <h4 style={{ margin: '0 0 15px 0', borderBottom: '1px solid #444', paddingBottom: 5 }}>Patrocinadores</h4>
+                                <div style={{ marginBottom: 20 }}>
+                                    <label style={{ display: 'block', marginBottom: 5 }}>Imagen</label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <input
+                                            className="input-field"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => setSponsorsConfig && setSponsorsConfig({ ...(matchState.sponsors || { show: false, scale: 1, opacity: 1 }), image: reader.result as string });
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                            style={{ width: '100%', fontSize: '0.8em' }}
+                                        />
+                                        {matchState.sponsors?.image && (
+                                            <div style={{ position: 'relative' }}>
+                                                <img src={matchState.sponsors.image} alt="Sponsors" style={{ height: 40, borderRadius: 4, background: 'white', padding: 2 }} />
+                                                <button
+                                                    onClick={() => setSponsorsConfig && setSponsorsConfig({ ...(matchState.sponsors || {}), image: '' })}
+                                                    style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', border: 'none', width: 20, height: 20, cursor: 'pointer', lineHeight: '18px', padding: 0 }}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                {/* Sliders */}
+                                <div style={{ marginBottom: 10 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <label style={{ fontSize: '0.8em', color: '#ccc' }}>Tamaño: {matchState.sponsors?.scale || 1}x</label>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0.5" max="2" step="0.1"
+                                        value={matchState.sponsors?.scale || 1}
+                                        onChange={(e) => setSponsorsConfig && setSponsorsConfig({ ...(matchState.sponsors || { image: '', show: false, opacity: 1 }), scale: parseFloat(e.target.value) })}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                                <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <label style={{ fontSize: '0.8em', color: '#ccc' }}>Opacidad: {matchState.sponsors?.opacity || 1}</label>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0.1" max="1" step="0.1"
+                                        value={matchState.sponsors?.opacity || 1}
+                                        onChange={(e) => setSponsorsConfig && setSponsorsConfig({ ...(matchState.sponsors || { image: '', show: false, scale: 1 }), opacity: parseFloat(e.target.value) })}
+                                        style={{ width: '100%' }}
+                                    />
                                 </div>
                             </div>
 
@@ -739,7 +986,7 @@ export const Dashboard: React.FC = () => {
                                                 modalAction.details.type === 'drop' ? '¿Quién metió el drop?' :
                                                     '¿Quién marcó?'
                                 )
-                                : `¿Quién recibió la tarjeta ${modalAction.details.cardType === 'yellow' ? 'amarilla' : 'roja'}?`
+                                : `¿Quién recibió la tarjeta ${modalAction.details.cardType === 'yellow' ? 'amarilla' : (modalAction.details.cardType === 'red-20' ? 'roja (20m)' : 'roja')}?`
                         }
                         cards={matchState.cards}
                     />

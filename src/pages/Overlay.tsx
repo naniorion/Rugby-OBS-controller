@@ -11,6 +11,13 @@ export const Overlay: React.FC = () => {
     const { matchState } = useMatch();
     const { home, away, timer, cards } = matchState;
 
+    useEffect(() => {
+        document.body.style.backgroundColor = 'transparent';
+        return () => {
+            document.body.style.backgroundColor = '';
+        };
+    }, []);
+
     // Estado local para controlar la visibilidad de notificaciones emergentes (ej. GOL, Cambio)
     const [notification, setNotification] = useState<{
         visible: boolean;
@@ -39,11 +46,18 @@ export const Overlay: React.FC = () => {
     useEffect(() => {
         if (matchState.actions && matchState.actions.length > 0) {
             const latest = matchState.actions[0];
-            // Si es una acción nueva (ID diferente al último visto)
-            if (latest.id !== lastActionIdRef.current) {
+
+            // Debug Log
+
+
+            // Si es una acción nueva (ID diferente al último visto) o si es la misma pero faltaban datos de tarjeta
+            const isNew = latest.id !== lastActionIdRef.current;
+            const isCardMissingDetails = latest.type === 'card' && lastActionIdRef.current === latest.id && notification.visible && notification.data?.id === latest.id && !notification.data.cardType;
+
+            if (isNew || isCardMissingDetails) {
                 // Validación: Si la nueva acción tiene ID menor que la actual, significa que se borró la última acción (undo).
                 // En ese caso, actualizamos la referencia pero NO mostramos notificación.
-                if (lastActionIdRef.current && parseInt(latest.id) < parseInt(lastActionIdRef.current)) {
+                if (isNew && lastActionIdRef.current && parseInt(latest.id) < parseInt(lastActionIdRef.current)) {
                     lastActionIdRef.current = latest.id;
                     return;
                 }
@@ -56,11 +70,15 @@ export const Overlay: React.FC = () => {
                 } else if (['try', 'conversion', 'penalty', 'drop', 'card', 'penaltyTry'].includes(latest.type)) {
                     if (latest.player || ['try', 'conversion', 'penalty', 'drop', 'penaltyTry'].includes(latest.type)) {
                         // Enriquecemos los datos si es una tarjeta
-                        let extraData = {};
+                        let extraData: any = {};
                         if (latest.type === 'card') {
                             const relatedCard = cards.find((c: any) => c.id === latest.linkedId);
                             if (relatedCard) {
                                 extraData = { cardType: relatedCard.type };
+                            } else {
+                                // If card not found yet, don't block re-entry? 
+                                // Actually matchContext sends type in action too.
+                                if (latest.cardType) extraData.cardType = latest.cardType;
                             }
                         }
                         setNotification({ visible: true, type: 'score', data: { ...latest, ...extraData } });
@@ -80,7 +98,25 @@ export const Overlay: React.FC = () => {
     const homeCards = cards.filter((c: any) => c.teamId === 'home');
     const awayCards = cards.filter((c: any) => c.teamId === 'away');
 
+    // Calculate historical card stats from actions
+    const getCardStats = (teamId: string) => {
+        const teamActions = (matchState.actions || []).filter((a: any) => a.teamId === teamId);
+        return {
+            yellows: teamActions.filter((a: any) => (a.type === 'card' && a.cardType === 'yellow') || a.type === 'yellow').length,
+            reds: teamActions.filter((a: any) => (a.type === 'card' && a.cardType === 'red') || a.type === 'red').length,
+            red20s: teamActions.filter((a: any) => (a.type === 'card' && a.cardType === 'red-20')).length
+        };
+    };
+
+    const homeCardStats = getCardStats('home');
+    const awayCardStats = getCardStats('away');
+
     const activeView = matchState.overlay?.activeView || 'scoreboard';
+
+    useEffect(() => {
+        // Debug Log
+
+    }, [activeView, matchState.presentation, matchState.sponsors]);
 
     /**
      * Helper para obtener el icono o imagen correspondiente a un tipo de acción.
@@ -121,9 +157,11 @@ export const Overlay: React.FC = () => {
         if (type.includes('yellow') || type.includes('red') || type === 'card') {
             const isRed = type.includes('red');
             const color = isRed ? '#ff4444' : '#ffd700';
+            const is20 = type.includes('20');
             return (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill={color}>
                     <rect x="4" y="3" width="16" height="20" rx="2" stroke="none" />
+                    {is20 && <text x="12" y="16" fontSize="9" fill="white" textAnchor="middle" fontWeight="bold" style={{ filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.5))' }}>20'</text>}
                 </svg>
             );
         }
@@ -307,14 +345,13 @@ export const Overlay: React.FC = () => {
                                                 if (type === 'sub') return 'CAMBIO';
                                                 if (type === 'card' || type === 'yellow' || type === 'red') {
                                                     const finalType = cardType || type;
+                                                    if (finalType === 'red-20' || (typeof finalType === 'string' && finalType.includes('20'))) return "TARJETA ROJA 20'";
                                                     if (finalType.includes('red')) return 'TARJETA ROJA';
                                                     if (finalType.includes('yellow')) return 'TARJETA AMARILLA';
                                                     return 'TARJETA'; // Fallback
                                                 }
                                                 return type.toUpperCase();
                                             };
-
-                                            const title = getActionTitle(act.type, act.cardType);
 
                                             // Helper to translate Description
                                             const getDescription = () => {
@@ -331,14 +368,35 @@ export const Overlay: React.FC = () => {
                                                     return `${act.player.name} (${act.player.number})`;
                                                 }
                                                 // Generic / Team Action
-                                                const teamName = act.teamId === 'home' ? home.info.name : away.info.name;
-                                                return `${teamName} marca ${title}`;
+                                                if (act.teamId === 'home' || act.teamId === 'away') {
+                                                    const teamName = act.teamId === 'home' ? home.info.name : away.info.name;
+                                                    return `${teamName} marca ${getActionTitle(act.type, act.cardType)}`;
+                                                }
+                                                // Neutral events descriptions
+                                                if (act.description) return act.description;
+
+                                                return getActionTitle(act.type, act.cardType);
                                             };
 
+                                            const title = getActionTitle(act.type, act.cardType);
                                             const description = getDescription();
 
+                                            // Special Case for Neutral Events (Halves, etc.)
+                                            if (act.teamId === 'neutral') {
+                                                return (
+                                                    <div key={act.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '15px 0' }}>
+                                                        <div style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: '1.1em', color: 'gold', background: 'rgba(255,255,255,0.05)', padding: '5px', borderRadius: 4, marginBottom: 5 }}>
+                                                            {act.timestamp}
+                                                        </div>
+                                                        <div style={{ fontSize: '1.2em', fontWeight: 'bold', color: '#fff', textTransform: 'uppercase', letterSpacing: 1 }}>
+                                                            {description}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
                                             return (
-                                                <div key={act.id} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', alignItems: 'center', gap: 20 }}>
+                                                <div key={act.id} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', alignItems: 'center', gap: 20, borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '10px 0' }}>
 
                                                     {/* Left Column (Home Actions) */}
                                                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', opacity: act.teamId === 'home' ? 1 : 0 }}>
@@ -414,32 +472,32 @@ export const Overlay: React.FC = () => {
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10, background: 'rgba(0,0,0,0.5)' }}>
                     <div style={{
                         background: 'rgba(0,0,0,0.95)',
-                        padding: 40,
+                        padding: 20,
                         borderRadius: 12,
                         width: 700,
                         color: 'white',
                         boxShadow: '0 10px 50px rgba(0,0,0,0.6)',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 20
+                        gap: 10
                     }}>
-                        <h1 style={{ textAlign: 'center', margin: 0, borderBottom: '1px solid #444', paddingBottom: 15, textTransform: 'uppercase', letterSpacing: 2 }}>Estadísticas</h1>
+                        <h1 style={{ textAlign: 'center', margin: 0, borderBottom: '1px solid #444', paddingBottom: 10, textTransform: 'uppercase', letterSpacing: 2 }}>Estadísticas</h1>
 
                         {/* Headers */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 1fr', alignItems: 'center', marginBottom: 10 }}>
-                            <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5em', color: home.info.color }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 1fr', alignItems: 'center', marginBottom: 5 }}>
+                            <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.2em', color: home.info.color }}>
                                 <div>{home.info.name}</div>
-                                <div style={{ fontSize: '2em', lineHeight: 1 }}>{home.score.total}</div>
+                                <div style={{ fontSize: '1.8em', lineHeight: 1 }}>{home.score.total}</div>
                             </div>
                             <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.9em', color: '#888' }}>VS</div>
-                                <div style={{ fontSize: '1.2em', fontFamily: 'monospace', color: 'gold', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginTop: 5 }}>
+                                <div style={{ fontSize: '0.8em', color: '#888' }}>VS</div>
+                                <div style={{ fontSize: '1.1em', fontFamily: 'monospace', color: 'gold', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: 4, display: 'inline-block', marginTop: 5 }}>
                                     {formatTime(timer.value)}
                                 </div>
                             </div>
-                            <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5em', color: away.info.color }}>
+                            <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.2em', color: away.info.color }}>
                                 <div>{away.info.name}</div>
-                                <div style={{ fontSize: '2em', lineHeight: 1 }}>{away.score.total}</div>
+                                <div style={{ fontSize: '1.8em', lineHeight: 1 }}>{away.score.total}</div>
                             </div>
                         </div>
 
@@ -450,18 +508,19 @@ export const Overlay: React.FC = () => {
                             { label: 'Transformaciones', icon: 'conversion', h: home.score.conversions, a: away.score.conversions },
                             { label: 'Golpes de Castigo', icon: 'penalty', h: home.score.penalties, a: away.score.penalties },
                             { label: 'Drops', icon: 'drop', h: home.score.drops, a: away.score.drops },
-                            { label: 'Tarjetas Amarillas', icon: 'card-yellow', h: homeCards.filter((c: any) => c.type === 'yellow').length, a: awayCards.filter((c: any) => c.type === 'yellow').length },
-                            { label: 'Tarjetas Rojas', icon: 'card-red', h: homeCards.filter((c: any) => c.type === 'red').length, a: awayCards.filter((c: any) => c.type === 'red').length },
+                            { label: 'Tarjetas Amarillas', icon: 'card-yellow', h: homeCardStats.yellows, a: awayCardStats.yellows },
+                            { label: 'Tarjetas Rojas 20\'', icon: 'card-red-20', h: homeCardStats.red20s, a: awayCardStats.red20s },
+                            { label: 'Tarjetas Rojas', icon: 'card-red', h: homeCardStats.reds, a: awayCardStats.reds },
                             // Handling manual adjustments if needed? Maybe not relevant for stats count, only total score.
                         ].map((stat, i) => (
-                            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 150px 1fr', alignItems: 'center', padding: '10px 0', borderBottom: i < 5 ? '1px solid #222' : 'none' }}>
-                                <div style={{ textAlign: 'center', fontSize: '1.8em', fontWeight: 'bold' }}>{stat.h}</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                                    <div style={{ color: '#aaa', fontSize: '0.8em', textTransform: 'uppercase' }}>{stat.label}</div>
+                            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 150px 1fr', alignItems: 'center', padding: '4px 0', borderBottom: i < 7 ? '1px solid #222' : 'none' }}>
+                                <div style={{ textAlign: 'center', fontSize: '1.5em', fontWeight: 'bold' }}>{stat.h}</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                    <div style={{ color: '#aaa', fontSize: '0.7em', textTransform: 'uppercase' }}>{stat.label}</div>
                                     <div style={{
                                         background: 'rgba(255,255,255,0.1)',
-                                        borderRadius: '8px', // Changed to square-ish to fit sprite better? Or keep circle. Sprite is rectangular.
-                                        width: 40, height: 40,
+                                        borderRadius: '6px',
+                                        width: 30, height: 30,
                                         display: 'flex', justifyContent: 'center', alignItems: 'center',
                                         overflow: 'hidden' // Ensure sprite doesn't bleed if we change size
                                     }}>
@@ -480,7 +539,7 @@ export const Overlay: React.FC = () => {
             {activeView === 'stats_lower' && (
                 <div style={{
                     position: 'absolute',
-                    bottom: 40,
+                    bottom: 25,
                     left: '50%',
                     transform: 'translateX(-50%)',
                     zIndex: 10,
@@ -530,8 +589,9 @@ export const Overlay: React.FC = () => {
                                         { icon: 'conversion', val: row.stats.conversions },
                                         { icon: 'penalty', val: row.stats.penalties },
                                         { icon: 'drop', val: row.stats.drops },
-                                        { icon: 'card-yellow', val: row.cards.filter((c: any) => c.type === 'yellow').length },
-                                        { icon: 'card-red', val: row.cards.filter((c: any) => c.type === 'red').length },
+                                        { icon: 'card-yellow', val: idx === 0 ? homeCardStats.yellows : awayCardStats.yellows },
+                                        { icon: 'card-red-20', val: idx === 0 ? homeCardStats.red20s : awayCardStats.red20s },
+                                        { icon: 'card-red', val: idx === 0 ? homeCardStats.reds : awayCardStats.reds },
                                     ].map((s, i) => (
                                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                             <div style={{
@@ -676,14 +736,23 @@ export const Overlay: React.FC = () => {
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <div style={{ fontSize: '1.6em', fontWeight: 'bold', lineHeight: 1 }}>{notification.data.player?.name || (['penaltyTry', 'try', 'conversion', 'penalty', 'drop'].includes(notification.data.type) ? (notification.data.teamId === 'home' ? home.info.name : away.info.name) : 'Unknown Player')}</div>
                                 <div style={{ fontSize: '1em', color: notification.data.teamId === 'home' ? home.info.color : away.info.color, textTransform: 'uppercase', fontWeight: 'bold', marginTop: 5 }}>
-                                    {notification.data.type === 'try' ? 'ENSAYO' :
-                                        notification.data.type === 'penaltyTry' ? 'ENSAYO DE CASTIGO' :
-                                            notification.data.type === 'conversion' ? 'TRANSFORMACIÓN' :
-                                                notification.data.type === 'penalty' ? 'GOLPE DE CASTIGO' :
-                                                    notification.data.type === 'drop' ? 'DROP' :
-                                                        (notification.data.type === 'yellow' || notification.data.cardType === 'yellow' || (notification.data.data && notification.data.data.cardType === 'yellow')) ? 'TARJETA AMARILLA' :
-                                                            (notification.data.type === 'red' || notification.data.cardType === 'red' || (notification.data.data && notification.data.data.cardType === 'red')) ? 'TARJETA ROJA' :
-                                                                notification.data.type.toUpperCase()}
+                                    {(() => {
+                                        // Helper for label
+                                        if (notification.data.type === 'try') return 'ENSAYO';
+                                        if (notification.data.type === 'penaltyTry') return 'ENSAYO DE CASTIGO';
+                                        if (notification.data.type === 'conversion') return 'TRANSFORMACIÓN';
+                                        if (notification.data.type === 'penalty') return 'GOLPE DE CASTIGO';
+                                        if (notification.data.type === 'drop') return 'DROP';
+                                        // Card Logic
+                                        const cType = notification.data.cardType || (notification.data.data && notification.data.data.cardType) || notification.data.type;
+                                        // Hard check for red-20 in type string
+                                        if (cType === 'red-20' || (typeof cType === 'string' && cType.includes('20')) || notification.data.type === 'red-20') return "TARJETA ROJA 20'";
+
+                                        if (cType === 'yellow' || (typeof cType === 'string' && cType.includes('yellow'))) return 'TARJETA AMARILLA';
+                                        if (cType === 'red' || (typeof cType === 'string' && cType.includes('red'))) return 'TARJETA ROJA';
+
+                                        return notification.data.type.toUpperCase();
+                                    })()}
                                 </div>
                             </div>
                             <div style={{ marginLeft: 'auto', opacity: 0.8 }}>
@@ -714,7 +783,201 @@ export const Overlay: React.FC = () => {
                 </div>
             )}
 
+            {/* Presentation View */}
+            {activeView === 'presentation' && (
+                <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                    <style>{`
+                        @keyframes growFromTop { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                        @keyframes growFromLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+                        @keyframes growFromRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+                    `}</style>
+
+                    {/* Layer 1: Poster (Background) */}
+                    {matchState.presentation?.posterImage && (
+                        <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            zIndex: 1,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <div style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                animation: 'growFromTop 1s ease-out forwards'
+                            }}>
+                                <img
+                                    src={matchState.presentation.posterImage}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'contain',
+                                        transform: `scale(${matchState.presentation.posterConfig?.scale || 1})`,
+                                        opacity: matchState.presentation.posterConfig?.opacity || 1,
+                                        transformOrigin: 'top center'
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Layer 2: Logos & Text (Foreground) */}
+                    {/* Layer 2: Logos & Text (Foreground) */}
+                    <div style={{
+                        position: 'relative',
+                        zIndex: 2,
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        alignItems: 'center',
+                        width: '100%',
+                        padding: '0 100px',
+                        opacity: matchState.presentation?.logosConfig?.opacity || 1,
+                        pointerEvents: 'none'
+                    }}>
+                        {/* Home Team (Left) - Wrapper for Scale */}
+                        <div style={{
+                            transform: `scale(${matchState.presentation?.logosConfig?.scale || 1})`,
+                            transformOrigin: 'center left',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            width: '100%'
+                        }}>
+                            {/* Home Team - Inner for Animation */}
+                            <div style={{
+                                textAlign: 'center',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 20,
+                                animation: 'growFromLeft 1s ease-out forwards'
+                            }}>
+                                {home.info.logoVal ?
+                                    <img src={home.info.logoVal} style={{ height: 300, objectFit: 'contain' }} /> :
+                                    <div style={{ height: 300, width: 300, background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>Logo Local</div>
+                                }
+                                <h1 style={{ fontSize: '4em', color: home.info.color, margin: 0, textShadow: '2px 2px 4px black' }}>{home.info.name}</h1>
+                            </div>
+                        </div>
+
+                        {/* Away Team (Right) - Wrapper for Scale */}
+                        <div style={{
+                            transform: `scale(${matchState.presentation?.logosConfig?.scale || 1})`,
+                            transformOrigin: 'center right',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            width: '100%'
+                        }}>
+                            {/* Away Team - Inner for Animation */}
+                            <div style={{
+                                textAlign: 'center',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 20,
+                                animation: 'growFromRight 1s ease-out forwards'
+                            }}>
+                                {away.info.logoVal ?
+                                    <img src={away.info.logoVal} style={{ height: 300, objectFit: 'contain' }} /> :
+                                    <div style={{ height: 300, width: 300, background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>Logo Visitante</div>
+                                }
+                                <h1 style={{ fontSize: '4em', color: away.info.color, margin: 0, textShadow: '2px 2px 4px black' }}>{away.info.name}</h1>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Layer 3: Presentation Footer (Top-most) */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: 50,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '90%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 20,
+                        color: 'white',
+                        zIndex: 3,
+                        pointerEvents: 'none'
+                    }}>
+                        {/* Title */}
+                        <div style={{ fontSize: '2.5em', color: 'gold', textShadow: '2px 2px 4px black', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                            {matchState.presentation?.title || 'MATCH DAY'}
+                        </div>
+
+                        {/* Info Boxes Row */}
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: 40 }}>
+                            {matchState.presentation?.field && (
+                                <div style={{ background: 'rgba(0,0,0,0.8)', padding: '10px 20px', borderRadius: 8, borderTop: '4px solid #4caf50', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '0.8em', color: '#aaa', textTransform: 'uppercase', marginBottom: 5, letterSpacing: 1 }}>Campo de Juego</div>
+                                    <div style={{ fontSize: '1.4em', fontWeight: 'bold' }}>{matchState.presentation.field}</div>
+                                </div>
+                            )}
+                            {matchState.presentation?.referee && (
+                                <div style={{ background: 'rgba(0,0,0,0.8)', padding: '10px 20px', borderRadius: 8, borderTop: '4px solid #ff9800', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '0.8em', color: '#aaa', textTransform: 'uppercase', marginBottom: 5, letterSpacing: 1 }}>Árbitro</div>
+                                    <div style={{ fontSize: '1.4em', fontWeight: 'bold' }}>{matchState.presentation.referee}</div>
+                                </div>
+                            )}
+                            {matchState.presentation?.assistants && (
+                                <div style={{ background: 'rgba(0,0,0,0.8)', padding: '10px 20px', borderRadius: 8, borderTop: '4px solid #2196f3', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '0.8em', color: '#aaa', textTransform: 'uppercase', marginBottom: 5, letterSpacing: 1 }}>Asistentes</div>
+                                    <div style={{ fontSize: '1.4em', fontWeight: 'bold' }}>{matchState.presentation.assistants}</div>
+                                </div>
+                            )}
+                            {matchState.presentation?.commentators && (
+                                <div style={{ background: 'rgba(0,0,0,0.8)', padding: '10px 20px', borderRadius: 8, borderTop: '4px solid #9c27b0', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '0.8em', color: '#aaa', textTransform: 'uppercase', marginBottom: 5, letterSpacing: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                                        <span>🎙️</span> Comentaristas
+                                    </div>
+                                    <div style={{ fontSize: '1.4em', fontWeight: 'bold' }}>{matchState.presentation.commentators}</div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+            {/* Sponsors Overlay */}
+            {
+                matchState.sponsors?.show && matchState.sponsors?.image && (
+                    <div style={{
+                        position: 'absolute',
+                        bottom: 0, // Align to very bottom
+                        right: 0,
+                        left: 0,
+                        zIndex: 40,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'flex-end', // Align items to bottom
+                        pointerEvents: 'none'
+                    }}>
+                        <img
+                            src={matchState.sponsors.image}
+                            style={{
+                                maxHeight: 'none', // Remove constraint
+                                maxWidth: '100%',
+                                objectFit: 'contain',
+                                filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.5))',
+                                transform: `scale(${matchState.sponsors.scale || 1})`,
+                                opacity: matchState.sponsors.opacity !== undefined ? matchState.sponsors.opacity : 1,
+                                transformOrigin: 'bottom center', // Grow upwards
+                                transition: 'all 0.3s ease'
+                            }}
+                        />
+                    </div>
+                )
+            }
+
             {(activeView === 'scoreboard' || activeView === 'custom_label' || activeView === 'stats_lower') && renderScoreboard()}
-        </div>
+
+            {/* DEBUG OVERLAY - Force Top Layer */}
+            {/* removed */}
+        </div >
     );
 };

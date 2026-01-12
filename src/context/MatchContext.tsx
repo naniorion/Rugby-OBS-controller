@@ -27,6 +27,18 @@ interface MatchContextType {
     setLeagueLogo?: (logo: string) => void;
     setScoreboardConfig?: (config: { scale: number; opacity: number }) => void;
     setLeagueLogoConfig?: (config: { scale: number; opacity: number }) => void;
+    setPresentationConfig?: (config: {
+        title: string;
+        posterImage: string;
+        showPoster: boolean;
+        posterConfig?: { scale: number; opacity: number };
+        logosConfig?: { scale: number; opacity: number };
+        referee?: string;
+        assistants?: string;
+        commentators?: string;
+        field?: string;
+    }) => void;
+    setSponsorsConfig?: (config: { image: string; show: boolean; scale: number; opacity: number }) => void;
 
     // Add other methods as needed
 }
@@ -192,6 +204,7 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
      * Añade una tarjeta (amarilla/roja) y su acción correspondiente.
      */
     const addCard = (card: any) => {
+
         const newAction = {
             id: Date.now().toString(),
             type: 'card' as const,
@@ -206,6 +219,7 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
                 away: matchState.away.score.total
             }
         };
+
 
         const newCards = [...matchState.cards, card];
         const currentActions = matchState.actions || [];
@@ -233,7 +247,7 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
     /**
      * Cambia la vista activa del Overlay (Tablero, Alineación, etc.).
      */
-    const setOverlayView = (view: 'scoreboard' | 'lineup_home' | 'lineup_away' | 'custom_label' | 'match_summary' | 'stats_comparison' | 'stats_lower', text?: string, subtext?: string, color?: string) => {
+    const setOverlayView = (view: 'scoreboard' | 'lineup_home' | 'lineup_away' | 'custom_label' | 'match_summary' | 'stats_comparison' | 'stats_lower' | 'presentation', text?: string, subtext?: string, color?: string) => {
         updateState({ overlay: { activeView: view, customLabelText: text, customLabelSubtext: subtext, customLabelColor: color } });
     }
 
@@ -335,13 +349,26 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         const timeVal = half === 2 ? 2400 : 0; // 40 minutos * 60 segundos
         sendCommand('timer-reset', timeVal);
 
+        // Generar entrada de log para cambio de tiempo
+        const newAction: MatchAction | any = {
+            id: Date.now().toString(),
+            type: 'manual', // Usamos manual genérico para el log
+            teamId: 'neutral',
+            description: half === 2 ? "MATCH: Inicio 2ª Parte" : "MATCH: Fin 1ª Parte / Descanso",
+            timestamp: half === 2 ? "40:00" : (matchState.timer.value ? `${Math.floor(matchState.timer.value / 60)}:${(matchState.timer.value % 60).toString().padStart(2, '0')}` : '00:00'),
+            scoreSnapshot: { home: matchState.home.score.total, away: matchState.away.score.total }
+        };
+
+        const currentActions = matchState.actions || [];
+
         updateState({
             timer: {
                 ...matchState.timer,
                 half: half,
                 label: half === 1 ? '1st Half' : '2nd Half',
                 value: timeVal // Optimistic update
-            }
+            },
+            actions: [newAction, ...currentActions]
         });
     };
 
@@ -372,6 +399,24 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         updateState({ leagueLogoConfig: config });
     };
 
+    const setPresentationConfig = (config: {
+        title: string;
+        posterImage: string;
+        showPoster: boolean;
+        posterConfig?: { scale: number; opacity: number };
+        logosConfig?: { scale: number; opacity: number };
+        referee?: string;
+        assistants?: string;
+        commentators?: string;
+        field?: string;
+    }) => {
+        updateState({ presentation: config });
+    };
+
+    const setSponsorsConfig = (config: { image: string; show: boolean; scale: number; opacity: number }) => {
+        updateState({ sponsors: config });
+    };
+
     return (
         <MatchContext.Provider value={{
             matchState,
@@ -392,7 +437,9 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
             performSub,
             setLeagueLogo,
             setScoreboardConfig,
-            setLeagueLogoConfig
+            setLeagueLogoConfig,
+            setPresentationConfig,
+            setSponsorsConfig
         }}>
             {children}
         </MatchContext.Provider>

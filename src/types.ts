@@ -54,7 +54,7 @@ export interface Card {
     id: string;              // ID único de la tarjeta
     teamId: 'home' | 'away'; // Equipo sancionado
     player: Player;          // Jugador sancionado
-    type: 'yellow' | 'red';  // Tipo de tarjeta
+    type: 'yellow' | 'red' | 'red-20';  // Tipo de tarjeta
     timestamp: number;       // Momento (segundos de partido) en que ocurrió
     remainingSeconds: number;// Tiempo restante de sanción (para amarillas)
 }
@@ -76,13 +76,13 @@ export interface Substitution {
  */
 export interface MatchAction {
     id: string;
-    type: 'try' | 'conversion' | 'penalty' | 'drop' | 'card' | 'sub' | 'manual' | 'penaltyTry';
+    type: 'try' | 'conversion' | 'penalty' | 'drop' | 'card' | 'sub' | 'manual' | 'penaltyTry' | 'period';
     teamId: 'home' | 'away';
     player?: Player;         // Jugador involucrado (opcional)
     description: string;     // Texto descriptivo para mostrar en el log
     timestamp: string;       // Tiempo formateado
     linkedId?: string;       // ID de enlace (ej: para relacionar con una Card específica y poder borrarla)
-    cardType?: 'yellow' | 'red';
+    cardType?: 'yellow' | 'red' | 'red-20';
     subDetails?: {           // Detalles específicos si es una sustitución
         playerIn: { name: string; number: string; id: string };
         playerOut: { name: string; number: string; id: string };
@@ -112,7 +112,7 @@ export interface MatchState {
     savedLabels: { id: string; text: string; subtext: string; color: string }[]; // Textos preguardados
     overlay: {
         // Vista activa en el overlay (qué se muestra en pantalla)
-        activeView: 'scoreboard' | 'lineup_home' | 'lineup_away' | 'custom_label' | 'match_summary' | 'stats_comparison' | 'stats_lower';
+        activeView: 'scoreboard' | 'lineup_home' | 'lineup_away' | 'custom_label' | 'match_summary' | 'stats_comparison' | 'stats_lower' | 'presentation';
         customLabelText?: string;
         customLabelSubtext?: string;
         customLabelColor?: string;
@@ -132,6 +132,29 @@ export interface MatchState {
         opacity: number;
     };
     leagueLogoConfig: {
+        scale: number;
+        opacity: number;
+    };
+    presentation: {
+        title: string;
+        posterImage: string;
+        showPoster: boolean;
+        posterConfig?: {
+            scale: number;
+            opacity: number;
+        };
+        logosConfig?: {
+            scale: number;
+            opacity: number;
+        };
+        referee?: string;
+        assistants?: string;
+        commentators?: string;
+        field?: string;
+    };
+    sponsors: {
+        image: string;
+        show: boolean;
         scale: number;
         opacity: number;
     };
@@ -162,5 +185,22 @@ export const INITIAL_STATE: MatchState = {
     obsConfig: { address: 'ws://localhost:4455', password: '', isConnected: false },
     leagueLogo: '',
     scoreboardConfig: { scale: 1, opacity: 1 },
-    leagueLogoConfig: { scale: 1, opacity: 1 }
+    leagueLogoConfig: { scale: 1, opacity: 1 },
+    presentation: {
+        title: 'MATCH DAY',
+        posterImage: '',
+        showPoster: true,
+        posterConfig: { scale: 1, opacity: 1 },
+        logosConfig: { scale: 1, opacity: 1 },
+        referee: '',
+        assistants: '',
+        commentators: '',
+        field: ''
+    },
+    sponsors: {
+        image: '',
+        show: false,
+        scale: 1,
+        opacity: 1
+    }
 };

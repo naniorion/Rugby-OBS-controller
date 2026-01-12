@@ -1,6 +1,6 @@
 {
   "name": "rugby-obs-controller",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist-electron/main.js",
   "description": "Rugby OBS Controller Application",
   "author": "naniorion",
@@ -26,7 +26,12 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
-    ]
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "dist/icon.ico",
+      "verifyUpdateCodeSignature": false
+    }
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

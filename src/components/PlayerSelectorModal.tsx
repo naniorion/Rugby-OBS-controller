@@ -70,7 +70,7 @@ export const PlayerSelectorModal: React.FC<PlayerSelectorModalProps> = ({ isOpen
                             const isActive = player.isOnField !== undefined ? player.isOnField : player.isStarter;
 
                             // Check for cards
-                            const hasRedCard = cards.some(c => c.player?.id === player.id && c.type === 'red');
+                            const hasRedCard = cards.some(c => c.player?.id === player.id && (c.type === 'red' || c.type === 'red-20'));
                             const hasYellowCard = cards.some(c => c.player?.id === player.id && c.type === 'yellow');
 
                             return (
