@@ -43,7 +43,16 @@ Desde aquí se controla el desarrollo del partido.
     *   **Ensayo (Try)**: +5 Puntos.
     *   **Conversión/Transf**: +2 Puntos.
     *   **Golpe (Penalty)**: +3 Puntos.
+    *   **Drop**: +3 Puntos
+    *   **Ensayo de castigo**: +7 Puntos
+
     *   *Una vez pulsado el botón de puntuación, el programa pregunta qué jugador/a ha anotado y mostrará en el overlay un rótulo con la información de la anotación.*
+
+<img width="1920" height="1140" alt="rugby-obs-controller (16)" src="https://github.com/user-attachments/assets/14127f3f-1322-4bb3-96ae-874c03fb526f" />
+![rugby-obs-controller (1)](https://github.com/user-attachments/assets/04e3d4f8-017c-486e-a609-61cdd44b56bb)
+
+
+
 *   **Tarjetas**: Gestión de amonestaciones. Al hacer clic en una tarjeta amarilla, se inicia una cuenta atrás de 10 minutos automáticamente en el overlay. En el caso de tarjeta roja se quedará marcada durante todo el partido.
 
 ### 3.2 Editor de Alineaciones
@@ -88,16 +97,27 @@ En esta pestaña se muestra el registro de acciones del partido.
 ### 3.6 Pestaña Configuración
 En esta pestaña se encuentra la configuración del programa.
 
-![Configuración](./img/screenshots/settings.png)
+<img width="1920" height="983" alt="rugby-obs-controller (20)" src="https://github.com/user-attachments/assets/1fadcc99-0a9a-4911-9d8c-c578483a0879" />
 
-*   Puede configurar la conexión de OBS con WebSocket.
-*   Puede agregar un Logotipo personalizado, que se verá en la esquina superior derecha.
+*   Puede configurar la conexión de OBS con WebSocket. (Para futuras mejoras)
+*   Puede agregar un **Logotipo y una imagen de patrocinadores** personalizados, que se verá en la esquina superior derecha y centrado en la parte inferior, respectivamente.
 *   Puede ajustar el tamaño y la opacidad del logotipo y del resto del overlay con las barras de configuración.
 
-### 3.7 Vista de Overlay (Salida)
+### 3.7 Pestaña Presentación
+En esta pestaña se encuentra la configuración de lo que se verá en el overlay cuando se pulse en “Presentación”. 
+
+<img width="1920" height="1079" alt="rugby-obs-controller (6)" src="https://github.com/user-attachments/assets/a1857633-5c9d-4cff-8957-8036d05dd31d" />
+
+*   Puede cambiar el título del partido / **nombre de la liga**.
+*   Puede agregar un **cartel** y editar su tamaño y opacidad.
+*   Puede modificar el tamaño y opacidad de los logos en la vista de presentación.
+*   Puede añadir los nombres de las personas que arbitran y comentan el partido, y el nombre del estadio donde se juega.
+
+### 3.8 Vista de Overlay (Salida)
 Esta es la imagen que verá la audiencia. No tiene controles, solo muestra la información que usted envía desde el panel.
 
 ![Overlay](./img/screenshots/overlay.png)
+<img width="1920" height="1009" alt="rugby-obs-controller (17)" src="https://github.com/user-attachments/assets/f4d15890-139a-485c-855f-f7c649a8c2d7" />
 
 ---
 
