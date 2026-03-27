@@ -39,6 +39,7 @@ interface MatchContextType {
         field?: string;
     }) => void;
     setSponsorsConfig?: (config: { image: string; show: boolean; scale: number; opacity: number }) => void;
+    loadConfig?: (config: Partial<MatchState>) => void;
 
     // Add other methods as needed
 }
@@ -417,6 +418,10 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
         updateState({ sponsors: config });
     };
 
+    const loadConfig = (config: Partial<MatchState>) => {
+        updateState(config);
+    };
+
     return (
         <MatchContext.Provider value={{
             matchState,
@@ -439,7 +444,8 @@ export const MatchProvider = ({ children }: { children: ReactNode }) => {
             setScoreboardConfig,
             setLeagueLogoConfig,
             setPresentationConfig,
-            setSponsorsConfig
+            setSponsorsConfig,
+            loadConfig
         }}>
             {children}
         </MatchContext.Provider>

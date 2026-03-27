@@ -54,6 +54,9 @@ Desde aquí se controla el desarrollo del partido.
 
 
 *   **Tarjetas**: Gestión de amonestaciones. Al hacer clic en una tarjeta amarilla, se inicia una cuenta atrás de 10 minutos automáticamente en el overlay. En el caso de tarjeta roja se quedará marcada durante todo el partido.
+*   **Guardar/Cargar Partido**: En la parte superior derecha, junto al botón de reiniciar, encontrará las opciones de:
+    *   **Exportar Config.**: Guarda un archivo `.json` en su equipo con todos los nombres, logos, plantillas y opciones visuales actuales.
+    *   **Importar Config.**: Permite cargar un archivo `.json` previo para recuperar al instante toda la configuración guardada de un partido.
 
 ### 3.2 Editor de Alineaciones
 Permite configurar personas titulares y suplentes de cada equipo.
@@ -61,8 +64,8 @@ Permite configurar personas titulares y suplentes de cada equipo.
 ![Alineaciones](./img/screenshots/lineups.png)
 
 *   Seleccione el equipo (Local o Visitante).
-*   Rellene los nombres y dorsales e indique si está en el XV titular.
-*   Haga clic en el botón “+” para actualizar la información en el sistema.
+*   **Ingreso individual**: Rellene los nombres y dorsales, indique si está en el XV titular y haga clic en el botón "+" para actualizar la información.
+*   **Ingreso masivo (Pegar Lista)**: Pulse el botón "Pegar Lista" para revelar una caja de texto. Aquí podrá pegar directamente desde Excel o un bloc de notas su lista de jugadores (usando el formato `[Número] [Nombre]`, un jugador por línea). El sistema detectará a los 15 primeros como titulares y al resto como finalizadores.
 *   En caso de error, puede borrar pulsando la “x” roja.
 
 ### 3.3 Gestor de Rótulos (Labels)

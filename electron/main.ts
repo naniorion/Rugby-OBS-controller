@@ -72,7 +72,8 @@ const io = new Server(httpServer, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
-    }
+    },
+    maxHttpBufferSize: 1e8 // Permite payloads de hasta 100MB (para imágenes en Base64)
 });
 
 const timerManager = new TimerManager();

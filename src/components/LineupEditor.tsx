@@ -20,6 +20,9 @@ export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
     const [isStarter, setIsStarter] = useState(true);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+    const [showBulkInput, setShowBulkInput] = useState(false);
+    const [bulkText, setBulkText] = useState('');
+
     /**
      * Añade un nuevo jugador a la lista.
      * Valida que no exista el número duplicado.
@@ -46,6 +49,48 @@ export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
         setNewName('');
         setNewNumber('');
         setErrorMsg(null);
+    };
+
+    /**
+     * Importación Masiva (Bulk Import)
+     */
+    const handleBulkImport = () => {
+        if (!bulkText.trim()) return;
+
+        const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l);
+        const currentLineup = [...(team.lineup || [])];
+        let addedCount = 0;
+
+        for (const line of lines) {
+            // Regex match: Number followed by spaces/hyphens followed by the rest
+            const match = line.match(/^(\d+)[-\s]+(.+)$/);
+            if (match) {
+                const num = match[1];
+                const name = match[2].trim();
+
+                if (!currentLineup.some(p => p.number === num)) {
+                    const currentStarters = currentLineup.filter(p => p.isStarter).length;
+                    
+                    currentLineup.push({
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                        name: name,
+                        number: num,
+                        isStarter: currentStarters < 15
+                    });
+                    addedCount++;
+                }
+            }
+        }
+
+        if (addedCount > 0) {
+            updateTeamInfo(teamId, { lineup: currentLineup });
+            setBulkText('');
+            setShowBulkInput(false);
+            setErrorMsg(null);
+        } else {
+            setErrorMsg("No se pudieron importar jugadores. Formato válido: '15 Juan Pérez'");
+            setTimeout(() => setErrorMsg(null), 3500);
+        }
     };
 
     const removePlayer = (id: string) => {
@@ -100,7 +145,36 @@ export const LineupEditor: React.FC<LineupEditorProps> = ({ teamId }) => {
                     Titular
                 </label>
                 <button onClick={addPlayer} className="btn btn-success" style={{ padding: '0 20px', fontSize: '1.2em' }}>+</button>
+                <button 
+                    onClick={() => setShowBulkInput(!showBulkInput)} 
+                    className={`btn ${showBulkInput ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ fontSize: '0.9em', marginLeft: 10 }}
+                >
+                    Pegar Lista
+                </button>
             </div>
+
+            {/* Panel de Importación Masiva */}
+            {showBulkInput && (
+                <div style={{ marginBottom: 15, background: 'rgba(255,255,255,0.05)', padding: 15, borderRadius: 5 }}>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '0.9em', color: '#ccc' }}>
+                        Pega una lista desde Excel o Notas. Formato por línea: <code>[Número] [Nombre]</code> (ej. <i>15 Juan Pérez</i>).
+                        Los 15 primeros ingresarán como titulares.
+                    </p>
+                    <textarea 
+                        className="input-field" 
+                        rows={6} 
+                        style={{ width: '100%', marginBottom: 10, resize: 'vertical' }}
+                        value={bulkText}
+                        onChange={(e) => setBulkText(e.target.value)}
+                        placeholder="1 Juan&#10;2 Carlos&#10;3 Pedro..."
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                        <button onClick={() => setShowBulkInput(false)} className="btn btn-secondary">Cancelar</button>
+                        <button onClick={handleBulkImport} className="btn btn-success">Importar</button>
+                    </div>
+                </div>
+            )}
 
             {/* Mensaje de Error en línea */}
             {errorMsg && (

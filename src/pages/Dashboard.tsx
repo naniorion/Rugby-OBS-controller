@@ -68,8 +68,45 @@ const Tab = ({ children }: any) => children;
  */
 export const Dashboard: React.FC = () => {
     // Consumimos todas las funciones del contexto global para manipular el estado
-    const { matchState, isConnected, updateScore, updateTimer, updateTeamInfo, addCard, removeCard, setOverlayView, setHalf, resetMatch, setLeagueLogo, setScoreboardConfig, setLeagueLogoConfig, setPresentationConfig, setSponsorsConfig } = useMatch() as any;
+    const { matchState, isConnected, updateScore, updateTimer, updateTeamInfo, addCard, removeCard, setOverlayView, setHalf, resetMatch, setLeagueLogo, setScoreboardConfig, setLeagueLogoConfig, setPresentationConfig, setSponsorsConfig, loadConfig } = useMatch() as any;
     const { home, away, timer, cards } = matchState;
+
+    // Handlers para Exportar e Importar Configuración
+    const handleExportConfig = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(matchState));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `rugby_config_${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+        document.body.appendChild(downloadAnchorNode); 
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const handleImportConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            try {
+                const json = JSON.parse(evt.target?.result as string);
+                if (window.confirm("¿Seguro que quieres cargar esta configuración? Reemplazará todo el estado del partido actual.")) {
+                    if (loadConfig) {
+                        loadConfig(json);
+                    }
+                }
+            } catch (err) {
+                alert("Error al leer el archivo JSON.");
+            }
+        };
+        reader.readAsText(file);
+        
+        // Reset input to allow importing the same file again if needed
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
 
     // Estado para Modales y Puerto del Servidor
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -176,17 +213,32 @@ export const Dashboard: React.FC = () => {
                         </div>
                     )}
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <span style={{ marginRight: 10, color: isConnected ? '#4caf50' : '#f44336' }}>
                         {isConnected ? '● Conectado' : '● Desconectado'}
                     </span>
+                    
+                    <button onClick={handleExportConfig} style={{ background: '#2196f3', color: 'white', border: 'none', padding: '5px 15px', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}>
+                        Exportar Config.
+                    </button>
+                    <button onClick={() => fileInputRef.current?.click()} style={{ background: '#4caf50', color: 'white', border: 'none', padding: '5px 15px', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold' }}>
+                        Importar Config.
+                    </button>
+                    <input 
+                        type="file" 
+                        accept=".json" 
+                        style={{ display: 'none' }} 
+                        ref={fileInputRef} 
+                        onChange={handleImportConfig} 
+                    />
+
                     <button
                         onClick={() => {
                             if (window.confirm('¿Estás seguro de que quieres REINICIAR el partido? Esto borrará puntuaciones, acciones y temporizador.')) {
                                 if (resetMatch) resetMatch();
                             }
                         }}
-                        style={{ background: '#d32f2f', color: 'white', border: 'none', padding: '5px 15px', borderRadius: 4, cursor: 'pointer', marginRight: 10, fontWeight: 'bold' }}
+                        style={{ background: '#d32f2f', color: 'white', border: 'none', padding: '5px 15px', borderRadius: 4, cursor: 'pointer', marginLeft: 10, fontWeight: 'bold' }}
                     >
                         REINICIAR PARTIDO
                     </button>
