@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rugby OBS Controller</title>
+    <meta name="description" content="Controlador profesional para transmisiones de Rugby en OBS, desarrollado con Electron, React y TypeScript.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="logo">Rugby<span>OBS</span></div>
+        <div class="nav-links">
+            <a href="#features">Características</a>
+            <a href="#showcase">Galería</a>
+            <a href="https://github.com/naniorion/Rugby-OBS-controller" target="_blank">Código Fuente</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="badge opacity-0 animate-up">Versión 1.0.5 Disponible</div>
+        <h1 class="opacity-0 animate-up delay-1">Control Total de tus<br>Transmisiones de Rugby</h1>
+        <p class="opacity-0 animate-up delay-2">Un controlador profesional diseñado para OBS Studio. Marcador en tiempo real, gestión de alineaciones, temporizadores y un overlay dinámico que elevará la calidad técnica de tus directos.</p>
+        <div class="hero-buttons opacity-0 animate-up delay-3">
+            <a href="https://github.com/naniorion/Rugby-OBS-controller/releases" class="btn btn-primary">
+                <i class="fa-solid fa-download"></i> Descargar Instalador
+            </a>
+            <a href="#features" class="btn btn-secondary">
+                Descubrir más
+            </a>
+        </div>
+    </header>
+
+    <!-- Features -->
+    <section id="features" class="features">
+        <h2 class="section-title">Herramientas <span>Profesionales</span></h2>
+        <div class="grid">
+            <div class="card glass">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-stopwatch"></i>
+                </div>
+                <h3>Cronómetro y Marcador</h3>
+                <p>Gestión precisa de puntos (Ensayo, Transformación, Golpe, Drop, Ensayo de Castigo) con cálculos automáticos de suma y control de tiempo dividido en mitades.</p>
+            </div>
+            
+            <div class="card glass">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <h3>Gestión de Equipos y Logos</h3>
+                <p>Personaliza colores, iniciales y logotipos de ambas escuadras. Los datos se envían instantáneamente al Overlay sin necesidad de tocar OBS.</p>
+            </div>
+
+            <div class="card glass">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <h3>Alineaciones Masivas</h3>
+                <p>Añade jugadores de forma manual o copia y pega el listado completo (Cuerpo Técnico incluido) desde Excel para automatizar la inserción de tus XV iniciales.</p>
+            </div>
+
+            <div class="card glass">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-clone"></i>
+                </div>
+                <h3>Patrones Reutilizables</h3>
+                <p>No empieces de cero cada fin de semana. Exporta el setup de un partido en formato `.json` e impórtalo en segundos para mantener las mismas plantillas, rótulos e imágenes locales.</p>
+            </div>
+
+            <div class="card glass">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-square-full" style="color: #facc15"></i>
+                </div>
+                <h3>Tarjetas y Tiempos de Expulsión</h3>
+                <p>Registro de tarjetas rojas y amarillas automatizadas. Si asignas una amarilla, el reloj del jugador suspendido contará 10 minutos y le avisará en pantalla.</p>
+            </div>
+
+            <div class="card glass">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-tv"></i>
+                </div>
+                <h3>Diseño de Rótulos</h3>
+                <p>Presenta el partido elegantemente. Desde carteles dinámicos con foto de fondo y arbitraje, hasta la inserción en directo de los patrocinadores.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Showcase Bento Box -->
+    <section id="showcase" class="showcase">
+        <h2 class="section-title">Interfaz en <span>Acción</span></h2>
+        <div class="bento-grid">
+            <!-- Interfaz Principal (Dashboard grande) -->
+            <div class="bento-item glass">
+                <h4>Dashboard de Control Principal</h4>
+                <img src="https://github.com/user-attachments/assets/19e60ddb-9ce4-44aa-8493-5c5ebd0ee314" alt="Dashboard Principal" loading="lazy">
+            </div>
+            
+            <!-- Detalles Secundarios -->
+            <div class="bento-item glass">
+                <h4>Overlay - Estadísticas Superiores</h4>
+                <img src="https://github.com/user-attachments/assets/2f06cd9c-1d42-488f-ada2-04b443f0eacd" alt="Estadisticas y Marcador" loading="lazy">
+            </div>
+            
+            <div class="bento-item glass">
+                <h4>Generador de Rótulos y Carteles</h4>
+                <img src="https://github.com/user-attachments/assets/4a8e86c2-a5a5-4b0d-8097-5e6345e37110" alt="Generador Carteles" loading="lazy">
+            </div>
+        </div>
+    </section>
+
+    <!-- Setup Banner -->
+    <section class="setup-banner glass">
+        <h2>¿Listo para mejorar tus directos?</h2>
+        <p>Integración en 2 clics. Envía el link remoto a la 'Fuente de Navegador' de tu estudio OBS y toma el control de los rótulos.</p>
+        <a href="https://github.com/naniorion/Rugby-OBS-controller/releases" class="btn btn-primary">
+            <i class="fa-solid fa-download"></i> Descargar versión de Windows
+        </a>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Rugby OBS Controller. Creado por <a href="https://github.com/naniorion" target="_blank">naniorion</a>.</p>
+    </footer>
+
+    <!-- Simple Scroll Script -->
+    <script>
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>
