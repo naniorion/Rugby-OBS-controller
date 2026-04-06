@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rugby OBS Controller</title>
-    <meta name="description" content="Controlador profesional para transmisiones de Rugby en OBS, desarrollado con Electron, React y TypeScript.">
+    <meta name="description"
+        content="Controlador profesional para transmisiones de Rugby en OBS, desarrollado con Electron, React y TypeScript.">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
 
     <!-- Navigation -->
@@ -27,7 +30,9 @@
     <header class="hero">
         <div class="badge opacity-0 animate-up">Versión 1.0.5 Disponible</div>
         <h1 class="opacity-0 animate-up delay-1">Control Total de tus<br>Transmisiones de Rugby</h1>
-        <p class="opacity-0 animate-up delay-2">Un controlador profesional diseñado para OBS Studio. Marcador en tiempo real, gestión de alineaciones, temporizadores y un overlay dinámico que elevará la calidad técnica de tus directos.</p>
+        <p class="opacity-0 animate-up delay-2">Un controlador profesional diseñado para OBS Studio. Marcador en tiempo
+            real, gestión de alineaciones, temporizadores y un overlay dinámico que elevará la calidad técnica de tus
+            directos.</p>
         <div class="hero-buttons opacity-0 animate-up delay-3">
             <a href="https://github.com/naniorion/Rugby-OBS-controller/releases" class="btn btn-primary">
                 <i class="fa-solid fa-download"></i> Descargar Instalador
@@ -47,15 +52,17 @@
                     <i class="fa-solid fa-stopwatch"></i>
                 </div>
                 <h3>Cronómetro y Marcador</h3>
-                <p>Gestión precisa de puntos (Ensayo, Transformación, Golpe, Drop, Ensayo de Castigo) con cálculos automáticos de suma y control de tiempo dividido en mitades.</p>
+                <p>Gestión precisa de puntos (Ensayo, Transformación, Golpe, Drop, Ensayo de Castigo) con cálculos
+                    automáticos de suma y control de tiempo dividido en mitades.</p>
             </div>
-            
+
             <div class="card glass">
                 <div class="icon-wrapper">
                     <i class="fa-solid fa-users"></i>
                 </div>
                 <h3>Gestión de Equipos y Logos</h3>
-                <p>Personaliza colores, iniciales y logotipos de ambas escuadras. Los datos se envían instantáneamente al Overlay sin necesidad de tocar OBS.</p>
+                <p>Personaliza colores, iniciales y logotipos de ambas escuadras. Los datos se envían instantáneamente
+                    al Overlay sin necesidad de tocar OBS.</p>
             </div>
 
             <div class="card glass">
@@ -63,7 +70,8 @@
                     <i class="fa-solid fa-clipboard-list"></i>
                 </div>
                 <h3>Alineaciones Masivas</h3>
-                <p>Añade jugadores de forma manual o copia y pega el listado completo (Cuerpo Técnico incluido) desde Excel para automatizar la inserción de tus XV iniciales.</p>
+                <p>Añade jugadores de forma manual o copia y pega el listado completo (Cuerpo Técnico incluido) desde
+                    Excel para automatizar la inserción de tus XV iniciales.</p>
             </div>
 
             <div class="card glass">
@@ -71,7 +79,8 @@
                     <i class="fa-solid fa-clone"></i>
                 </div>
                 <h3>Patrones Reutilizables</h3>
-                <p>No empieces de cero cada fin de semana. Exporta el setup de un partido en formato `.json` e impórtalo en segundos para mantener las mismas plantillas, rótulos e imágenes locales.</p>
+                <p>No empieces de cero cada fin de semana. Exporta el setup de un partido en formato `.json` e impórtalo
+                    en segundos para mantener las mismas plantillas, rótulos e imágenes locales.</p>
             </div>
 
             <div class="card glass">
@@ -79,7 +88,8 @@
                     <i class="fa-solid fa-square-full" style="color: #facc15"></i>
                 </div>
                 <h3>Tarjetas y Tiempos de Expulsión</h3>
-                <p>Registro de tarjetas rojas y amarillas automatizadas. Si asignas una amarilla, el reloj del jugador suspendido contará 10 minutos y le avisará en pantalla.</p>
+                <p>Registro de tarjetas rojas y amarillas automatizadas. Si asignas una amarilla, el reloj del jugador
+                    suspendido contará 10 minutos y le avisará en pantalla.</p>
             </div>
 
             <div class="card glass">
@@ -87,7 +97,8 @@
                     <i class="fa-solid fa-tv"></i>
                 </div>
                 <h3>Diseño de Rótulos</h3>
-                <p>Presenta el partido elegantemente. Desde carteles dinámicos con foto de fondo y arbitraje, hasta la inserción en directo de los patrocinadores.</p>
+                <p>Presenta el partido elegantemente. Desde carteles dinámicos con foto de fondo y arbitraje, hasta la
+                    inserción en directo de los patrocinadores.</p>
             </div>
         </div>
     </section>
@@ -99,18 +110,86 @@
             <!-- Interfaz Principal (Dashboard grande) -->
             <div class="bento-item glass">
                 <h4>Dashboard de Control Principal</h4>
-                <img src="https://github.com/user-attachments/assets/19e60ddb-9ce4-44aa-8493-5c5ebd0ee314" alt="Dashboard Principal" loading="lazy">
+                <img src="https://github.com/user-attachments/assets/19e60ddb-9ce4-44aa-8493-5c5ebd0ee314"
+                    alt="Dashboard Principal" loading="lazy">
             </div>
-            
+
             <!-- Detalles Secundarios -->
             <div class="bento-item glass">
                 <h4>Overlay - Estadísticas Superiores</h4>
-                <img src="https://github.com/user-attachments/assets/2f06cd9c-1d42-488f-ada2-04b443f0eacd" alt="Estadisticas y Marcador" loading="lazy">
+                <img src="https://github.com/user-attachments/assets/2f06cd9c-1d42-488f-ada2-04b443f0eacd"
+                    alt="Estadisticas y Marcador" loading="lazy">
+            </div>
+
+            <div class="bento-item glass">
+                <h4>Generador de Rótulos y Carteles</h4>
+                <img src="https://github.com/user-attachments/assets/4a8e86c2-a5a5-4b0d-8097-5e6345e37110"
+                    alt="Generador Carteles" loading="lazy">
             </div>
             
             <div class="bento-item glass">
-                <h4>Generador de Rótulos y Carteles</h4>
-                <img src="https://github.com/user-attachments/assets/4a8e86c2-a5a5-4b0d-8097-5e6345e37110" alt="Generador Carteles" loading="lazy">
+                <h4>Editor de Alineaciones</h4>
+                <img src="https://github.com/user-attachments/assets/d74c0387-b192-4074-9dce-e4109b03408c" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Control de OBS</h4>
+                <img src="https://github.com/user-attachments/assets/1bf2b3d8-bdac-4912-b05c-459961b5b17b" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Marcador Completo</h4>
+                <img src="https://github.com/user-attachments/assets/1e12137c-fdb8-4abd-a4e5-a352c9381250" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Presentación de Patrocinadores</h4>
+                <img src="https://github.com/user-attachments/assets/abcc98f5-51cd-4cf3-b85d-edd61cbbbcf3" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Overlay de Sustituciones</h4>
+                <img src="https://github.com/user-attachments/assets/25b8079f-f9db-4098-87b3-7619004a25d5" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Panel de Comentaristas</h4>
+                <img src="https://github.com/user-attachments/assets/c8b47a87-b6a0-477b-9e85-99782eaae725" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Detalles Gráficos</h4>
+                <img src="https://github.com/user-attachments/assets/80ece464-bddb-49ab-8c6e-d401332f7a9d" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Temporizadores</h4>
+                <img src="https://github.com/user-attachments/assets/e3e594f1-5f82-4e5b-9c49-202317472dea" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Ajuste de Tarjetas</h4>
+                <img src="https://github.com/user-attachments/assets/f32f5c0c-6917-463a-95bf-df15d9c111d8" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Overlay Tarjeta Amarilla</h4>
+                <img src="https://github.com/user-attachments/assets/cecf71fc-3ade-43fd-9247-b045d2c46b78" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Tarjetas y Expulsados</h4>
+                <img src="https://github.com/user-attachments/assets/4fa8b7c8-abda-4df5-90d3-df4ad35d7774" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Animación de Golpes</h4>
+                <img src="https://github.com/user-attachments/assets/72f5ebca-4d4e-4e24-bd5b-70a0105288d3" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Menú Configuración</h4>
+                <img src="https://github.com/user-attachments/assets/9debd87d-495e-4bda-98a5-b027e6dd7302" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Editor Visual</h4>
+                <img src="https://github.com/user-attachments/assets/6471c29a-d252-4aa8-b5e0-9c770c35771a" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Escalas UI</h4>
+                <img src="https://github.com/user-attachments/assets/3ab90f3c-1807-4b8e-959d-158acf114ed1" loading="lazy">
+            </div>
+            <div class="bento-item glass">
+                <h4>Tiempos y Faltas</h4>
+                <img src="https://github.com/user-attachments/assets/36ab0f06-e5d6-4a37-94a6-492eb21b24c7" loading="lazy">
             </div>
         </div>
     </section>
@@ -118,7 +197,8 @@
     <!-- Setup Banner -->
     <section class="setup-banner glass">
         <h2>¿Listo para mejorar tus directos?</h2>
-        <p>Integración en 2 clics. Envía el link remoto a la 'Fuente de Navegador' de tu estudio OBS y toma el control de los rótulos.</p>
+        <p>Integración en 2 clics. Envía el link remoto a la 'Fuente de Navegador' de tu estudio OBS y toma el control
+            de los rótulos.</p>
         <a href="https://github.com/naniorion/Rugby-OBS-controller/releases" class="btn btn-primary">
             <i class="fa-solid fa-download"></i> Descargar versión de Windows
         </a>
@@ -132,7 +212,8 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2026 Rugby OBS Controller. Creado por <a href="https://github.com/naniorion" target="_blank">naniorion</a>.</p>
+        <p>&copy; 2026 Rugby OBS Controller. Creado por <a href="https://github.com/naniorion"
+                target="_blank">naniorion</a>.</p>
     </footer>
 
     <!-- Scripts -->
@@ -164,4 +245,5 @@
         });
     </script>
 </body>
+
 </html>
