@@ -25,13 +25,14 @@ Controlador profesional para transmisiones de Rugby en OBS, desarrollado con Ele
 
 ## Instrucciones de Instalación
 
-### Opción A: Usar el Ejecutable (Portable)
-Si ya tienes la carpeta `dist/win-unpacked` o el archivo `.exe` generado:
-1.  No requiere instalación.
-2.  Copia la carpeta entera donde quieras.
-3.  Ejecuta `rugby-obs-controller.exe`.
+### Descargar e Instalar (Recomendado)
+La manera más sencilla de utilizar la aplicación es usar el instalador precompilado:
 
-### Opción B: Desarrollo (Código Fuente)
+1.  Ve a la sección **[Releases](../../releases)** del repositorio (a la derecha en la página principal).
+2.  Descarga el archivo `.exe` correspondiente a la última versión (ej. `rugby-obs-controller Setup 1.0.5.exe`).
+3.  Ejecuta el archivo descargado para instalarlo y abrir la aplicación.
+
+### Desarrollo (Código Fuente)
 Si quieres modificar el código:
 1.  Asegúrate de tener **Node.js** instalado.
 2.  Clona este repositorio o descomprime el código.
@@ -45,45 +46,22 @@ Si quieres modificar el código:
     npm run dev
     ```
 
-## Instrucciones de Uso
+## Guía Básica de Uso
 
-1.  **Abrir la Aplicación**: Ejecuta el programa. Se abrirá el **Panel de Control**.
-2.  **Configurar OBS**:
-    *   En el Panel de Control, busca el recuadro verde que dice **Overlay URL** (ej. `http://localhost:3000/#/overlay`).
-    *   En OBS Studio, añade una **Fuente de Navegador (Browser Source)**.
-    *   Pega la URL en el campo correspondiente.
-    *   Establece el tamaño en **1920x1080**.
-3.  **Gestionar el Partido**:
-    *   Usa las pestañas para cambiar entre Puntuación, Sustituciones, Alineaciones, etc.
-    *   Los cambios se reflejan inmediatamente en OBS.
-
-## Cómo subir a GitHub
-
-Para subir este proyecto a tu repositorio de GitHub:
-
-1.  Crea un **nuevo repositorio** vacío en GitHub.
-2.  Abre la terminal en la carpeta de este proyecto.
-3.  Inicializa git (si no lo has hecho):
-    ```bash
-    git init
-    ```
-4.  Asegúrate de tener un archivo `.gitignore` (ver abajo).
-5.  Añade los archivos:
-    ```bash
-    git add .
-    ```
-6.  Haz el primer commit:
-    ```bash
-    git commit -m "Versión inicial 1.0.0"
-    ```
-7.  Conecta con tu repositorio (cambia la URL por la tuya):
-    ```bash
-    git remote add origin https://github.com/TU_USUARIO/TU_REPOSITORIO.git
-    ```
-8.  Sube los cambios:
-    ```bash
-    git push -u origin master
-    ```
+1.  **Abrir la Aplicación**: Tras instalar, ejecuta el programa para abrir el **Panel de Control** principal.
+2.  **Preparar tu Partido**:
+    *   En la pestaña superior ve a **Control Partido** y establece los nombres, iniciales y colores de los equipos (Local y Visitante). Puedes subir también logotipos de cada equipo.
+    *   En **Configuración** puedes añadir una imagen de patrocinadores y un logo de la liga.
+    *   En **Presentación** puedes añadir información sobre el partido (Cartel, árbitros, comentaristas, campo de juego...).
+    *   Ve a la sección de **Alineaciones**, donde puedes añadir jugadores individualmente o utilizar el botón **Pegar Lista** para importar masivamente todo tu equipo de golpe copiando el texto desde Excel o Bloc de Notas.
+    *   Puedes crear rótulos con un título y un subtítulo para mostrar información adicional durante el partido y guardarlos para más tarde o mostrarlos directamente.
+    *   *(Recomendado)*: Una vez que hayas preparado los nombres, logos y gráficos, utiliza el botón **Exportar Config.** del cabezal. Esto creará un archivo `.json` en tu ordenador. Para próximos partidos, solamente tendrás que darle a **Importar Config.** para cargar todos los gráficos al momento.
+3.  **Configurar OBS Studio**:
+    *   En el Panel de Control, arriba a la izquierda, copia la ruta que aparece como señal en verde **Overlay URL** (ej. `http://localhost:3000/#/overlay`).
+    *   Abre OBS Studio y añade desde las opciones una **Fuente de Navegador (Browser Source)**.
+    *   Pega la URL que has copiado y define un tamaño de **1920 (Ancho)** y **1080 (Alto)**.
+4.  **Durante el Partido**:
+    *   Maneja el temporizador en vivo. Al sumar ensayos, conversiones o golpes, el programa actualizará el cálculo total y disparará las gráficas automáticamente en el lienzo de tu OBS.
 
 ## Estructura del Proyecto
 
