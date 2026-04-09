@@ -1,9 +1,9 @@
-# Manual de Usuario - Rugby OBS Controller
+# Manual de Usuario - Rugby controller for OBS
 
-Este documento sirve como guía completa para el uso de la aplicación **Rugby OBS Controller**.
+Este documento sirve como guía completa para el uso de la aplicación **Rugby controller for OBS**.
 
 ## 1. Introducción
-**Rugby OBS Controller** es una aplicación diseñada para gestionar los gráficos y el marcador de una transmisión de rugby en tiempo real utilizando OBS Studio. Permite controlar el tiempo, los puntos, las tarjetas y las alineaciones desde un panel de control fácil de usar.
+**Rugby controller for OBS** es una aplicación diseñada para gestionar los gráficos y el marcador de una transmisión de rugby en tiempo real utilizando OBS Studio. Permite controlar el tiempo, los puntos, las tarjetas y las alineaciones desde un panel de control fácil de usar.
 
 ## 2. Instalación y Puesta en Marcha
 

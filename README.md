@@ -1,4 +1,4 @@
-# Rugby OBS Controller
+# Rugby controller for OBS
 
 Controlador profesional para transmisiones de Rugby en OBS, desarrollado con Electron, React y TypeScript.
 

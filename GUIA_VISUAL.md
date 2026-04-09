@@ -1,4 +1,4 @@
-# 📘 Guía Visual de Uso - Rugby OBS Controller
+# 📘 Guía Visual de Uso - Rugby controller for OBS
 
 Esta guía explica de forma visual cómo funciona el sistema y cómo operarlo durante un partido.
 
@@ -141,4 +141,4 @@ Puedes crear rótulos personalizados para mostrar información extra (ej. "Desca
 
 ---
 
-_Documento generado para Rugby OBS Controller v1.0.5_
+_Documento generado para Rugby controller for OBS v1.0.5_

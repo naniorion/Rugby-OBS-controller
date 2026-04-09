@@ -2,7 +2,7 @@
   "name": "rugby-obs-controller",
   "version": "1.0.5",
   "main": "dist-electron/main.js",
-  "description": "Rugby OBS Controller Application",
+  "description": "Rugby controller for OBS",
   "author": "naniorion",
   "scripts": {
     "dev": "vite",
