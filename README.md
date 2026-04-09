@@ -97,5 +97,9 @@ Si quieres modificar el código:
 
     
 
+## Licencia
+
+Distribuido bajo la Licencia GPLv3. Consulta el archivo `LICENSE` para más detalles.
+
 ---
 *Creado por naniorion*
